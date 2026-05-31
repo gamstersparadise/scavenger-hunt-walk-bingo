@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walk Bingo 🌿</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Courier+Prime:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #1a1a0e;
+        --paper: #f5f0e8;
+        --moss: #4a6741;
+        --sage: #8aab7e;
+        --bark: #8b6f47;
+        --cream: #ede8d8;
+        --rule: #c8bfa8;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Courier Prime", monospace;
+        min-height: 100vh;
+        padding: 2rem 1rem 4rem;
+        background-image: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 27px,
+          var(--rule) 27px,
+          var(--rule) 28px
+        );
+      }
+
+      .page {
+        max-width: 640px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      /* ── Header ── */
+      header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        padding-top: 1rem;
+      }
+
+      header h1 {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2.4rem, 8vw, 3.6rem);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        line-height: 1;
+        color: var(--moss);
+      }
+
+      header .sub {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: 1rem;
+        color: var(--bark);
+        margin-top: 0.4rem;
+        letter-spacing: 0.05em;
+      }
+
+      header .dateline {
+        font-size: 0.78rem;
+        color: var(--bark);
+        margin-top: 0.6rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      /* ── Rules ── */
+      .rules {
+        border: 1.5px solid var(--moss);
+        border-radius: 2px;
+        padding: 0.9rem 1.2rem;
+        margin-bottom: 2rem;
+        font-size: 0.82rem;
+        line-height: 1.7;
+        background: var(--cream);
+      }
+
+      .rules strong {
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--moss);
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+
+      /* ── Bingo grid ── */
+      .grid-wrap {
+        margin-bottom: 2rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 2px solid var(--ink);
+        border-left: 2px solid var(--ink);
+      }
+
+      .cell {
+        border-right: 2px solid var(--ink);
+        border-bottom: 2px solid var(--ink);
+        aspect-ratio: 1 / 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.6rem;
+        text-align: center;
+        font-size: clamp(0.65rem, 2.2vw, 0.82rem);
+        line-height: 1.35;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        transition: background 0.15s;
+        background: var(--paper);
+      }
+
+      .cell:hover {
+        background: var(--cream);
+      }
+
+      .cell.found {
+        background: var(--moss);
+        color: var(--paper);
+      }
+
+      /* tick mark drawn via pseudo-element */
+      .cell.found::after {
+        content: "✓";
+        position: absolute;
+        top: 4px;
+        right: 6px;
+        font-size: 0.7rem;
+        opacity: 0.7;
+      }
+
+      /* winning row/col highlight */
+      .cell.winner {
+        background: var(--bark);
+        color: var(--paper);
+      }
+
+      /* ── Tick row ── */
+      .tick-row {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        font-size: 0.78rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        color: var(--bark);
+      }
+
+      .tick-row span {
+        margin-right: 0.2rem;
+      }
+
+      .tick-box {
+        width: 1.1rem;
+        height: 1.1rem;
+        border: 1.5px solid var(--ink);
+        border-radius: 1px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        background: var(--paper);
+        transition: background 0.15s;
+      }
+
+      .tick-box.checked {
+        background: var(--moss);
+        color: var(--paper);
+        border-color: var(--moss);
+      }
+
+      /* ── Win banner ── */
+      .win-banner {
+        display: none;
+        text-align: center;
+        border: 2px solid var(--moss);
+        background: var(--cream);
+        padding: 1rem;
+        margin-bottom: 2rem;
+        animation: fadeIn 0.4s ease;
+      }
+
+      .win-banner.show {
+        display: block;
+      }
+
+      .win-banner p {
+        font-family: "Playfair Display", serif;
+        font-size: 1.3rem;
+        color: var(--moss);
+      }
+
+      .win-banner small {
+        font-size: 0.78rem;
+        color: var(--bark);
+      }
+
+      /* ── Fill-in fields ── */
+      .fields {
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+        padding: 0.8rem 0;
+        margin-bottom: 2rem;
+        font-size: 0.82rem;
+      }
+
+      .field-row {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        padding: 0.35rem 0;
+      }
+
+      .field-row label {
+        min-width: 9rem;
+        color: var(--bark);
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        flex-shrink: 0;
+      }
+
+      .field-line {
+        flex: 1;
+        border: none;
+        border-bottom: 1px solid var(--ink);
+        background: transparent;
+        font-family: "Courier Prime", monospace;
+        font-size: 0.85rem;
+        color: var(--ink);
+        padding: 0 0.2rem 0.1rem;
+        outline: none;
+      }
+
+      .field-line::placeholder {
+        color: var(--rule);
+      }
+
+      /* ── Notes ── */
+      .notes-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--bark);
+        margin-bottom: 0.4rem;
+      }
+
+      .notes-lines {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        margin-bottom: 2rem;
+      }
+
+      .note-line {
+        border: none;
+        border-bottom: 1px solid var(--rule);
+        background: transparent;
+        font-family: "Courier Prime", monospace;
+        font-size: 0.85rem;
+        color: var(--ink);
+        padding: 0.1rem 0.2rem;
+        outline: none;
+        width: 100%;
+      }
+
+      /* ── Buttons ── */
+      .actions {
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+      }
+
+      button {
+        font-family: "Courier Prime", monospace;
+        font-size: 0.82rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border: 1.5px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        padding: 0.55rem 1.4rem;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        border-radius: 1px;
+      }
+
+      button:hover {
+        background: var(--moss);
+        color: var(--paper);
+        border-color: var(--moss);
+      }
+
+      button.primary {
+        background: var(--moss);
+        color: var(--paper);
+        border-color: var(--moss);
+      }
+
+      button.primary:hover {
+        background: var(--ink);
+        border-color: var(--ink);
+      }
+
+      /* ── Print styles ── */
+      @media print {
+        body {
+          background: white;
+          background-image: none;
+          padding: 0;
+        }
+
+        .actions {
+          display: none;
+        }
+
+        .cell {
+          cursor: default;
+        }
+        .cell:hover {
+          background: var(--paper);
+        }
+        .cell.found {
+          background: #ddd;
+          color: var(--ink);
+        }
+        .cell.found::after {
+          display: none;
+        }
+        .cell.winner {
+          background: #ddd;
+          color: var(--ink);
+        }
+
+        .win-banner {
+          display: none !important;
+        }
+
+        .field-line,
+        .note-line {
+          border-bottom: 1px solid #888;
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>Walk Bingo</h1>
+        <div class="sub">a scavenger hunt for your walk</div>
+        <div class="dateline" id="dateline"></div>
+      </header>
+
+      <div class="rules">
+        <strong>How to play</strong>
+        Find the items on your walk and tap (or tick) them off. Complete a full
+        row or column — then you're free to head home. 🏡
+      </div>
+
+      <div class="grid-wrap">
+        <div class="grid" id="grid"></div>
+      </div>
+
+      <div class="tick-row" id="ticks">
+        <span>Found:</span>
+      </div>
+
+      <div class="win-banner" id="winBanner">
+        <p>🌿 Bingo! You can head home.</p>
+        <small>Fill in your steps below and keep as a souvenir.</small>
+      </div>
+
+      <div class="fields">
+        <div class="field-row">
+          <label>Name</label>
+          <input
+            class="field-line"
+            type="text"
+            placeholder="_ _ _ _ _ _ _ _ _ _ _ _"
+            maxlength="40"
+          />
+        </div>
+        <div class="field-row">
+          <label>Steps taken</label>
+          <input
+            class="field-line"
+            type="text"
+            placeholder="_ _ _ _ _ _"
+            maxlength="20"
+          />
+        </div>
+      </div>
+
+      <div class="notes-label">Notes</div>
+      <div class="notes-lines">
+        <input class="note-line" type="text" placeholder="" />
+        <input class="note-line" type="text" placeholder="" />
+        <input class="note-line" type="text" placeholder="" />
+      </div>
+
+      <div class="actions">
+        <button class="primary" onclick="newCard()">New card</button>
+        <button onclick="window.print()">Print</button>
+      </div>
+    </div>
+
+    <script>
+      const ITEMS = [
+        "A yellow flower",
+        "A red flower",
+        "A white flower",
+        "A wild berry bush",
+        "A mushroom",
+        "Moss on a rock",
+        "A pine cone",
+        "A fallen tree",
+        "A bird nest",
+        "A spider web",
+        "A feather on the ground",
+        "A four-leaf clover",
+        "A dandelion",
+        "A butterfly",
+        "A bumblebee",
+        "A snail",
+        "A frog or toad",
+        "A squirrel",
+        "A bird singing",
+        "Two birds together",
+        "An anthill",
+        "A beetle",
+        "A caterpillar",
+        "A worm on the path",
+        "A rabbit",
+        "A duck or goose",
+        "A deer track",
+        "Lichen on bark",
+        "A stream or brook",
+        "A puddle with reflections",
+        "Flowing water sounds",
+        "A cloud shaped like an animal",
+        "A wooden fence",
+        "A stone wall",
+        "A red mailbox",
+        "A bench to sit on",
+        "A signpost",
+        "A footbridge",
+        "A swing set",
+        "Smoke from a chimney",
+        "Laundry drying outside",
+        "A garden gnome",
+        "A wind chime",
+        "A bicycle parked outside",
+        "A vegetable garden",
+        "A fruit tree",
+        "An apple on the ground",
+        "A hay bale",
+        "A tractor or farm vehicle",
+        "A church or chapel",
+        "A flag flying",
+        "Graffiti or street art",
+        "A fountain",
+        "A locked gate",
+        "Steps carved into a hill",
+        "A shadow that looks cool",
+        "Something blue and man-made",
+        "Something orange",
+        "Something perfectly round",
+        "Something older than you",
+        "Something newer than a year",
+        "A number above 100 on a sign",
+      ];
+
+      let found = new Array(9).fill(false);
+      let currentItems = [];
+
+      function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function checkWin() {
+        // rows
+        for (let r = 0; r < 3; r++) {
+          if ([0, 1, 2].every((c) => found[r * 3 + c]))
+            return [r * 3, r * 3 + 1, r * 3 + 2];
+        }
+        // cols
+        for (let c = 0; c < 3; c++) {
+          if ([0, 1, 2].every((r) => found[r * 3 + c]))
+            return [c, c + 3, c + 6];
+        }
+        return null;
+      }
+
+      function render() {
+        const grid = document.getElementById("grid");
+        const ticks = document.getElementById("ticks");
+        const banner = document.getElementById("winBanner");
+        const win = checkWin();
+
+        // cells
+        grid.innerHTML = "";
+        currentItems.forEach((item, i) => {
+          const cell = document.createElement("div");
+          cell.className =
+            "cell" +
+            (found[i] ? " found" : "") +
+            (win && win.includes(i) ? " winner" : "");
+          cell.textContent = item;
+          cell.onclick = () => {
+            found[i] = !found[i];
+            render();
+          };
+          grid.appendChild(cell);
+        });
+
+        // tick boxes
+        ticks.innerHTML = "<span>Found:</span>";
+        found.forEach((f) => {
+          const b = document.createElement("div");
+          b.className = "tick-box" + (f ? " checked" : "");
+          b.textContent = f ? "✓" : "";
+          ticks.appendChild(b);
+        });
+
+        // win banner
+        if (win) banner.classList.add("show");
+        else banner.classList.remove("show");
+      }
+
+      function newCard() {
+        currentItems = shuffle(ITEMS).slice(0, 9);
+        found = new Array(9).fill(false);
+        // clear text fields
+        document
+          .querySelectorAll(".field-line, .note-line")
+          .forEach((el) => (el.value = ""));
+        render();
+      }
+
+      // dateline
+      const now = new Date();
+      document.getElementById("dateline").textContent = now.toLocaleDateString(
+        "en-GB",
+        { weekday: "long", day: "numeric", month: "long", year: "numeric" },
+      );
+
+      // init
+      newCard();
+    </script>
+  </body>
+</html>
