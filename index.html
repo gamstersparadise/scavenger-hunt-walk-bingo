@@ -32,13 +32,6 @@
         font-family: "Courier Prime", monospace;
         min-height: 100vh;
         padding: 2rem 1rem 4rem;
-        background-image: repeating-linear-gradient(
-          0deg,
-          transparent,
-          transparent 27px,
-          var(--rule) 27px,
-          var(--rule) 28px
-        );
       }
 
       .page {
@@ -102,7 +95,7 @@
 
       /* ── Bingo grid ── */
       .grid-wrap {
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
       }
 
       .grid {
@@ -154,40 +147,6 @@
       .cell.winner {
         background: var(--bark);
         color: var(--paper);
-      }
-
-      /* ── Tick row ── */
-      .tick-row {
-        display: flex;
-        gap: 0.4rem;
-        align-items: center;
-        font-size: 0.78rem;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-        color: var(--bark);
-      }
-
-      .tick-row span {
-        margin-right: 0.2rem;
-      }
-
-      .tick-box {
-        width: 1.1rem;
-        height: 1.1rem;
-        border: 1.5px solid var(--ink);
-        border-radius: 1px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.65rem;
-        background: var(--paper);
-        transition: background 0.15s;
-      }
-
-      .tick-box.checked {
-        background: var(--moss);
-        color: var(--paper);
-        border-color: var(--moss);
       }
 
       /* ── Win banner ── */
@@ -329,41 +288,121 @@
 
       /* ── Print styles ── */
       @media print {
+        @page {
+          size: A4 portrait;
+          margin: 12mm 14mm;
+        }
+
+        html,
+        body {
+          height: 100%;
+        }
+
         body {
           background: white;
           background-image: none;
           padding: 0;
+          font-size: 11pt;
         }
 
-        .actions {
-          display: none;
+        .page {
+          max-width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+
+        header {
+          margin-bottom: 6mm;
+          padding-top: 0;
+        }
+
+        header h1 {
+          font-size: 2rem;
+        }
+        header .sub {
+          font-size: 0.8rem;
+        }
+        header .dateline {
+          font-size: 0.65rem;
+          margin-top: 2px;
+        }
+
+        .rules {
+          padding: 4px 8px;
+          margin-bottom: 5mm;
+          font-size: 0.72rem;
+          line-height: 1.5;
+        }
+
+        .grid-wrap {
+          margin-bottom: 5mm;
+          flex-shrink: 0;
+        }
+
+        /* Fixed-size square grid that fits the page */
+        .grid {
+          width: 148mm;
+          height: 148mm;
+          margin: 0 auto;
         }
 
         .cell {
+          aspect-ratio: unset;
+          font-size: 0.72rem;
+          padding: 4px;
           cursor: default;
+          background: white !important;
+          color: black !important;
         }
+
         .cell:hover {
-          background: var(--paper);
-        }
-        .cell.found {
-          background: #ddd;
-          color: var(--ink);
+          background: white;
         }
         .cell.found::after {
           display: none;
-        }
-        .cell.winner {
-          background: #ddd;
-          color: var(--ink);
         }
 
         .win-banner {
           display: none !important;
         }
 
-        .field-line,
+        .fields {
+          margin-bottom: 6mm;
+          padding: 4px 0;
+        }
+
+        .field-row {
+          padding: 4px 0;
+        }
+        .field-row label {
+          font-size: 0.68rem;
+          min-width: 7rem;
+        }
+
+        .field-line {
+          border-bottom: 0.5pt solid #555;
+          min-width: 0;
+          width: 100%;
+          padding-bottom: 6px;
+        }
+
+        .notes-label {
+          font-size: 0.65rem;
+          margin-bottom: 2px;
+        }
+
+        .notes-lines {
+          gap: 5mm;
+          margin-bottom: 0;
+        }
+
         .note-line {
-          border-bottom: 1px solid #888;
+          border-bottom: 0.5pt solid #aaa;
+        }
+
+        .actions {
+          display: none;
         }
       }
 
@@ -397,10 +436,6 @@
         <div class="grid" id="grid"></div>
       </div>
 
-      <div class="tick-row" id="ticks">
-        <span>Found:</span>
-      </div>
-
       <div class="win-banner" id="winBanner">
         <p>🌿 Bingo! You can head home.</p>
         <small>Fill in your steps below and keep as a souvenir.</small>
@@ -409,21 +444,11 @@
       <div class="fields">
         <div class="field-row">
           <label>Name</label>
-          <input
-            class="field-line"
-            type="text"
-            placeholder="_ _ _ _ _ _ _ _ _ _ _ _"
-            maxlength="40"
-          />
+          <input class="field-line" type="text" maxlength="40" />
         </div>
         <div class="field-row">
           <label>Steps taken</label>
-          <input
-            class="field-line"
-            type="text"
-            placeholder="_ _ _ _ _ _"
-            maxlength="20"
-          />
+          <input class="field-line" type="text" maxlength="20" />
         </div>
       </div>
 
@@ -534,7 +559,6 @@
 
       function render() {
         const grid = document.getElementById("grid");
-        const ticks = document.getElementById("ticks");
         const banner = document.getElementById("winBanner");
         const win = checkWin();
 
@@ -552,15 +576,6 @@
             render();
           };
           grid.appendChild(cell);
-        });
-
-        // tick boxes
-        ticks.innerHTML = "<span>Found:</span>";
-        found.forEach((f) => {
-          const b = document.createElement("div");
-          b.className = "tick-box" + (f ? " checked" : "");
-          b.textContent = f ? "✓" : "";
-          ticks.appendChild(b);
         });
 
         // win banner
