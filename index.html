@@ -14,7 +14,6 @@
         --ink: #1a1a0e;
         --paper: #f5f0e8;
         --moss: #4a6741;
-        --sage: #8aab7e;
         --bark: #8b6f47;
         --cream: #ede8d8;
         --rule: #c8bfa8;
@@ -40,18 +39,50 @@
         position: relative;
       }
 
+      /* ── Lang switch ── */
+      .lang-switch {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.2rem;
+        margin-bottom: 1rem;
+      }
+
+      .lang-btn {
+        font-family: "Courier Prime", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border: 1px solid var(--rule);
+        background: transparent;
+        color: var(--bark);
+        padding: 0.25rem 0.6rem;
+        cursor: pointer;
+        border-radius: 1px;
+        transition: all 0.15s;
+      }
+
+      .lang-btn.active {
+        border-color: var(--moss);
+        color: var(--moss);
+        font-weight: 700;
+      }
+
+      .lang-btn:hover:not(.active) {
+        border-color: var(--bark);
+        color: var(--ink);
+      }
+
       /* ── Header ── */
       header {
         text-align: center;
         margin-bottom: 2.5rem;
-        padding-top: 1rem;
+        padding-top: 0.5rem;
       }
 
       header h1 {
         font-family: "Playfair Display", serif;
         font-size: clamp(2.4rem, 8vw, 3.6rem);
         font-weight: 700;
-        letter-spacing: -0.01em;
         line-height: 1;
         color: var(--moss);
       }
@@ -62,7 +93,6 @@
         font-size: 1rem;
         color: var(--bark);
         margin-top: 0.4rem;
-        letter-spacing: 0.05em;
       }
 
       header .dateline {
@@ -93,7 +123,7 @@
         margin-bottom: 0.3rem;
       }
 
-      /* ── Bingo grid ── */
+      /* ── Grid ── */
       .grid-wrap {
         margin-bottom: 1.5rem;
       }
@@ -110,7 +140,6 @@
         border-bottom: 2px solid var(--ink);
         aspect-ratio: 1 / 1;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
         padding: 0.6rem;
@@ -127,13 +156,10 @@
       .cell:hover {
         background: var(--cream);
       }
-
       .cell.found {
         background: var(--moss);
         color: var(--paper);
       }
-
-      /* tick mark drawn via pseudo-element */
       .cell.found::after {
         content: "✓";
         position: absolute;
@@ -142,8 +168,6 @@
         font-size: 0.7rem;
         opacity: 0.7;
       }
-
-      /* winning row/col highlight */
       .cell.winner {
         background: var(--bark);
         color: var(--paper);
@@ -159,29 +183,25 @@
         margin-bottom: 2rem;
         animation: fadeIn 0.4s ease;
       }
-
       .win-banner.show {
         display: block;
       }
-
       .win-banner p {
         font-family: "Playfair Display", serif;
         font-size: 1.3rem;
         color: var(--moss);
       }
-
       .win-banner small {
         font-size: 0.78rem;
         color: var(--bark);
       }
 
-      /* ── Fill-in fields ── */
+      /* ── Fields ── */
       .fields {
-        border-top: 1px solid var(--rule);
-        border-bottom: 1px solid var(--rule);
         padding: 0.8rem 0;
         margin-bottom: 2rem;
         font-size: 0.82rem;
+        padding-bottom: 16px;
       }
 
       .field-row {
@@ -201,17 +221,16 @@
       }
 
       .field-line {
-        flex: 1;
         border: none;
-        border-bottom: 1px solid var(--ink);
+        border-bottom: 1px solid var(--rule);
         background: transparent;
         font-family: "Courier Prime", monospace;
         font-size: 0.85rem;
         color: var(--ink);
-        padding: 0 0.2rem 0.1rem;
+        padding: 0.1rem 0.2rem;
         outline: none;
+        width: 100%;
       }
-
       .field-line::placeholder {
         color: var(--rule);
       }
@@ -268,25 +287,23 @@
           color 0.15s;
         border-radius: 1px;
       }
-
       button:hover {
         background: var(--moss);
         color: var(--paper);
         border-color: var(--moss);
       }
-
       button.primary {
         background: var(--moss);
         color: var(--paper);
         border-color: var(--moss);
       }
-
       button.primary:hover {
         background: var(--ink);
+        color: var(--paper);
         border-color: var(--ink);
       }
 
-      /* ── Print styles ── */
+      /* ── Print ── */
       @media print {
         @page {
           size: A4 portrait;
@@ -312,11 +329,14 @@
           flex-direction: column;
         }
 
+        .lang-switch {
+          display: none;
+        }
+
         header {
           margin-bottom: 6mm;
           padding-top: 0;
         }
-
         header h1 {
           font-size: 2rem;
         }
@@ -339,8 +359,6 @@
           margin-bottom: 5mm;
           flex-shrink: 0;
         }
-
-        /* Fixed-size square grid that fits the page */
         .grid {
           width: 148mm;
           height: 148mm;
@@ -355,7 +373,6 @@
           background: white !important;
           color: black !important;
         }
-
         .cell:hover {
           background: white;
         }
@@ -371,7 +388,6 @@
           margin-bottom: 6mm;
           padding: 4px 0;
         }
-
         .field-row {
           padding: 4px 0;
         }
@@ -379,7 +395,6 @@
           font-size: 0.68rem;
           min-width: 7rem;
         }
-
         .field-line {
           border-bottom: 0.5pt solid #555;
           min-width: 0;
@@ -391,12 +406,10 @@
           font-size: 0.65rem;
           margin-bottom: 2px;
         }
-
         .notes-lines {
           gap: 5mm;
           margin-bottom: 0;
         }
-
         .note-line {
           border-bottom: 0.5pt solid #aaa;
         }
@@ -420,16 +433,23 @@
   </head>
   <body>
     <div class="page">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      </div>
+
       <header>
-        <h1>Walk Bingo</h1>
-        <div class="sub">a scavenger hunt for your walk</div>
+        <h1 id="t-title">Walk Bingo</h1>
+        <div class="sub" id="t-sub">a scavenger hunt for your walk</div>
         <div class="dateline" id="dateline"></div>
       </header>
 
       <div class="rules">
-        <strong>How to play</strong>
-        Find the items on your walk and tap (or tick) them off. Complete a full
-        row or column — then you're free to head home. 🏡
+        <strong id="t-rules-head">How to play</strong>
+        <span id="t-rules-body"
+          >Find the items on your walk and tap (or tick) them off. Complete a
+          full row or column — then you're free to head home. 🏡</span
+        >
       </div>
 
       <div class="grid-wrap">
@@ -437,103 +457,752 @@
       </div>
 
       <div class="win-banner" id="winBanner">
-        <p>🌿 Bingo! You can head home.</p>
-        <small>Fill in your steps below and keep as a souvenir.</small>
+        <p id="t-win-p">🌿 Bingo! You can head home.</p>
+        <small id="t-win-small"
+          >Fill in your steps below and keep as a souvenir.</small
+        >
       </div>
 
       <div class="fields">
         <div class="field-row">
-          <label>Name</label>
+          <label id="t-label-name">Name</label>
           <input class="field-line" type="text" maxlength="40" />
         </div>
         <div class="field-row">
-          <label>Steps taken</label>
+          <label id="t-label-steps">Steps taken</label>
           <input class="field-line" type="text" maxlength="20" />
         </div>
       </div>
 
-      <div class="notes-label">Notes</div>
+      <div class="notes-label" id="t-notes">Notes</div>
       <div class="notes-lines">
-        <input class="note-line" type="text" placeholder="" />
-        <input class="note-line" type="text" placeholder="" />
-        <input class="note-line" type="text" placeholder="" />
+        <input class="note-line" type="text" />
+        <input class="note-line" type="text" />
+        <input class="note-line" type="text" />
       </div>
 
       <div class="actions">
-        <button class="primary" onclick="newCard()">New card</button>
-        <button onclick="window.print()">Print</button>
+        <button class="primary" onclick="newCard()" id="t-btn-new">
+          New card
+        </button>
+        <button onclick="window.print()" id="t-btn-print">Print</button>
       </div>
     </div>
-
     <script>
-      const ITEMS = [
-        "A yellow flower",
-        "A red flower",
-        "A white flower",
-        "A wild berry bush",
-        "A mushroom",
-        "Moss on a rock",
-        "A pine cone",
-        "A fallen tree",
-        "A bird nest",
-        "A spider web",
-        "A feather on the ground",
-        "A four-leaf clover",
-        "A dandelion",
-        "A butterfly",
-        "A bumblebee",
-        "A snail",
-        "A frog or toad",
-        "A squirrel",
-        "A bird singing",
-        "Two birds together",
-        "An anthill",
-        "A beetle",
-        "A caterpillar",
-        "A worm on the path",
-        "A rabbit",
-        "A duck or goose",
-        "A deer track",
-        "Lichen on bark",
-        "A stream or brook",
-        "A puddle with reflections",
-        "Flowing water sounds",
-        "A cloud shaped like an animal",
-        "A wooden fence",
-        "A stone wall",
-        "A red mailbox",
-        "A bench to sit on",
-        "A signpost",
-        "A footbridge",
-        "A swing set",
-        "Smoke from a chimney",
-        "Laundry drying outside",
-        "A garden gnome",
-        "A wind chime",
-        "A bicycle parked outside",
-        "A vegetable garden",
-        "A fruit tree",
-        "An apple on the ground",
-        "A hay bale",
-        "A tractor or farm vehicle",
-        "A church or chapel",
-        "A flag flying",
-        "Graffiti or street art",
-        "A fountain",
-        "A locked gate",
-        "Steps carved into a hill",
-        "A shadow that looks cool",
-        "Something blue and man-made",
-        "Something orange",
-        "Something perfectly round",
-        "Something older than you",
-        "Something newer than a year",
-        "A number above 100 on a sign",
-      ];
+      // ── Translations ──────────────────────────────────────────────────────────────
+      const LANG = {
+        en: {
+          title: "Walk Bingo",
+          sub: "a scavenger hunt for your walk",
+          rulesHead: "How to play",
+          rulesBody:
+            "Find the items on your walk and tap (or tick) them off. Complete a full row or column — then you're free to head home. 🏡",
+          winP: "🌿 Bingo! You can head home.",
+          winSmall: "Fill in your steps below and keep as a souvenir.",
+          labelName: "Name",
+          labelSteps: "Steps taken",
+          notes: "Notes",
+          btnNew: "New card",
+          btnPrint: "Print",
+          locale: "en-GB",
+        },
+        ru: {
+          title: "Прогулочное Бинго",
+          sub: "игра-поиск для прогулки",
+          rulesHead: "Как играть",
+          rulesBody:
+            "Найди предметы на прогулке и отмечай их. Заполни целый ряд или столбец — и можно возвращаться домой. 🏡",
+          winP: "🌿 Бинго! Можно идти домой.",
+          winSmall: "Запиши количество шагов ниже и сохрани на память.",
+          labelName: "Имя",
+          labelSteps: "Шагов пройдено",
+          notes: "Заметки",
+          btnNew: "Новая карточка",
+          btnPrint: "Печать",
+          locale: "ru-RU",
+        },
+      };
+      const ITEMS = {
+        en: [
+          // CONCRETE / VISUAL
+          "A red barn",
+          "A yellow taxi",
+          "A green bench",
+          "A blue mailbox",
+          "A pink flamingo lawn ornament",
+          "A white picket fence",
+          "A black crow",
+          "A brown horse",
+          "A gray heron",
+          "An orange pumpkin",
+          "A purple door",
+          "A gold coin",
+          "A silver car",
+          "A rusty bicycle",
+          "A brick chimney",
+          "A slate roof",
+          "A cobblestone path",
+          "A gravel driveway",
+          "A metal grate",
+          "A wooden wagon",
+          "A glass bottle",
+          "A ceramic pot",
+          "A clay tile",
+          "A rope swing",
+          "A hammock",
+          "A bird bath",
+          "A compost bin",
+          "A rain barrel",
+          "A fire hydrant",
+          "A telephone booth",
+          "A street sign bent sideways",
+          "A traffic cone",
+          "A construction crane",
+          "A dumpster behind a building",
+          "A fire escape",
+          "A balcony with flowers",
+          "A porch with rocking chairs",
+          "A window with a cat sitting in it",
+          "A door with a wreath",
+          "A staircase leading nowhere",
+          "A tunnel",
+          "A bridge over dry land",
+          "A creek with stepping stones",
+          "A pond with lily pads",
+          "A fallen log",
+          "A stump with rings visible",
+          "A rock painted like a ladybug",
+          "A piece of trash that looks intentional",
+          "A lost glove on a railing",
+          "A single shoe on a wire",
+          "A broken umbrella",
+          "A folding chair set up but empty",
+          "A picnic table with chess board drawn on it",
+          "A vending machine in an unusual place",
+          "A clock showing the wrong time",
+          "A number less than 10",
+          "A palindrome on a license plate",
+          "A word painted on the ground",
+          "A heart drawn in dust",
+          "A fork in the road with three paths",
+          "A circle of stones",
+          "A pattern of cracks in pavement",
+          "A shadow that looks like an animal",
+          "A cloud that looks like something else",
+          "A half-eaten apple on a wall",
+          "A single ripe berry on a bush",
+          "A leaf with holes from insects",
+          "A dandelion gone to seed",
+          "A four-leaf clover",
+          "A snail trail on concrete",
+          "A slug on a sidewalk",
+          "A beetle on its back",
+          "A caterpillar on a stem",
+          "A dragonfly perched",
+          "A moth on a window screen",
+          "A wasp nest under an eave",
+          "An anthill",
+          "A spider carrying an egg sac",
+          "A millipede on a rock",
+          "An earthworm after rain",
+          "A feather caught in a branch",
+          "A bone (maybe from someone's lunch)",
+          "An abandoned shoe",
+          "A single earring on the ground",
+          "A button",
+          "A key without a lock",
+          "A padlock on a bridge",
+          "A coin heads-up",
+          "A ticket stub",
+          "A bottle cap",
+          "A crushed can",
+          "A torn photograph",
+          "A grocery list dropped on the sidewalk",
+          "A note tucked into a crack",
+          "A sticker on a street lamp",
+          "A chalk drawing on pavement",
+          "A handprint in wet cement",
+          "A crack in the shape of a continent",
+          "A pipe dripping water",
+          "A thermostat on an outside wall",
+          "A light on during the day",
+          "A satellite dish",
+          "A chimney with no smoke",
+          "A door slightly open",
+          "A bright red front door",
+          "A blue bicycle",
+          "A yellow flower",
+          "A purple flower",
+          "A white flower",
+          "A black cat",
+          "A dog larger than a Labrador",
+          "A tiny dog",
+          "A pine cone",
+          "A mushroom",
+          "A spider web",
+          "A bird's nest",
+          "A feather",
+          "A butterfly",
+          "A bumblebee",
+          "A squirrel",
+          "A snail",
+          "A tree with exposed roots",
+          "A tree wider than you can hug",
+          "A tree growing through a fence",
+          "A building with ivy on it",
+          "A building with a red roof",
+          "A church tower",
+          "A fountain",
+          "A statue",
+          "A mural or street art piece",
+          "A public clock",
+          "A footbridge",
+          "A stone wall",
+          "A wooden fence",
+          "A wind chime",
+          "A garden gnome",
+          "A mailbox that is not red",
+          "A flag flying",
+          "A parked Tesla",
+          "A parked Volvo",
+          "A parked motorcycle",
+          "A vehicle with stickers",
+          "A vehicle older than 20 years",
+          "A bench facing water",
+          "A bench facing a road",
+          "A sign in a foreign language",
+          "A number greater than 1000",
+          "A locked gate",
+          "A ladder",
+          "A puddle with a reflection",
+          "A reflection in a window",
+          "Something perfectly round",
+          "Something orange",
+          // YOUR FAVORITE...
+          "Your favorite tree",
+          "Your favorite flower",
+          "Your favorite house",
+          "Your favorite front door",
+          "Your favorite street",
+          "Your favorite path",
+          "Your favorite bench",
+          "Your favorite view",
+          "Your favorite bridge",
+          "Your favorite garden",
+          "Your favorite building",
+          "Your favorite window",
+          "Your favorite mailbox",
+          "Your favorite fence",
+          "Your favorite piece of street art",
+          "Your favorite statue",
+          "Your favorite hidden spot",
+          "Your favorite quiet place",
+          "Your favorite colorful thing",
+          "Your favorite reflection",
+          "Your favorite shadow",
+          "Your favorite texture",
+          "Your favorite old object",
+          "Your favorite new object",
+          "Your favorite parked vehicle",
+          "Your favorite sign",
+          "Your favorite rock",
+          "Your favorite cloud",
+          "Your favorite thing found by accident",
+          "Your favorite thing you photographed",
+          "Your favorite thing that made you smile",
+          "Your favorite thing nobody else notices",
+          "Your favorite thing in nature",
+          "Your favorite thing made by humans",
+          "Your favorite place you would return to",
+          // PLAYFUL / WHIMSICAL
+          "A very tiny window",
+          "A bicycle",
+          "A rock that resembles a potato",
+          "A cloud that resembles food",
+          "A fence that has clearly seen better days",
+          "A bench with a questionable view",
+          "A mailbox in an unexpected color",
+          "A lonely shoe",
+          "A lost glove",
+          "A pair of lost gloves",
+          "A shopping cart where it definitely shouldn't be",
+          "A chair outdoors",
+          "A chair that nobody seems to use",
+          "A sign with too many exclamation marks",
+          "A sign that states the obvious",
+          "A sign that raises more questions than answers",
+          "A door you would never choose",
+          "A door you would absolutely choose",
+          "A house plant visible through a window",
+          "A vehicle with personality",
+          "A car older than some players",
+          "A vehicle that looks ready for an adventure",
+          "A vehicle that looks like it never moves",
+          "A garden gnome on duty",
+          "A garden decoration that surprises you",
+          "A mailbox that looks proud",
+          "A fence that is losing the argument with nature",
+          "A tree growing somewhere inconvenient",
+          "A flower growing somewhere inconvenient",
+          "A mushroom that looks important",
+          "A very crooked tree",
+          "A very straight tree",
+          "A bench that deserves an award",
+          "A bench you would never sit on",
+          "A bird sitting somewhere unusual",
+          "A feather in a strange location",
+          "A spider web doing excellent work",
+          "A puddle worthy of a photograph",
+          "A perfectly round stone",
+          "A perfectly imperfect stone",
+          "A tiny bridge",
+          "A giant puddle",
+          "A tiny flower",
+          "A giant weed",
+          "A gate that feels dramatic",
+          "A gate that feels unnecessary",
+          "A path that looks like a shortcut",
+          "A path that definitely is not a shortcut",
+          "A staircase to nowhere",
+          "A staircase worth climbing",
+          "A chimney working hard",
+          "A chimney that looks decorative",
+          "A window with character",
+          "A window that is oddly small",
+          "A house with too many decorations",
+          "A house with almost no decorations",
+          "A tree with multiple trunks",
+          "A tree with a hole in it",
+          "A branch shaped like something recognizable",
+          "A cloud doing its best impression of something",
+          "A lamp post that stands out",
+          "A lamp post that blends in perfectly",
+          "A bicycle basket",
+          "A wheelbarrow",
+          "A weather vane",
+          "A birdhouse",
+          "A scarecrow",
+          "A fountain that actually works",
+          "A number greater than 5000",
+          "A public clock showing the wrong time",
+          "A shadow that steals the scene",
+          "A patch of moss living its best life",
+          "A very neat garden",
+          "A very chaotic garden",
+          "A flower bed with a color theme",
+          "A building with an unusual roof",
+          "A building painted an unusual color",
+          "A red door",
+          "A blue door",
+          "A yellow door",
+          "A purple object",
+          "A pink object",
+          "A striped object",
+          "A polka-dotted object",
+          "A heart shape created accidentally",
+          "A face hidden in an object",
+          "A face hidden in nature",
+          // SUBJECTIVE
+          "A place you would bring a tourist",
+          "A place you would bring on a first date",
+          "A place that feels peaceful",
+          "A place that feels mysterious",
+          "A place that feels forgotten",
+          "A place that feels expensive",
+          "A place that feels rich in history",
+          "A place that feels magical",
+          "A place that feels lonely",
+          "A place that feels adventurous",
+          "A place that feels hidden",
+          "A place that feels surprisingly beautiful",
+          "A place that deserves more attention",
+          "A place you want to revisit",
+          "A place you have never noticed before",
+          "A place that makes you curious",
+          "A place that looks better than it probably is",
+          "A place that looks worse than it actually is",
+          "A place where you would read a book",
+          "A place where you would watch a sunset",
+          "A place where you could imagine a movie scene",
+          "A place that would make a great album cover",
+          "A place that makes you slow down",
+          "A hidden spot",
+          // ABSTRACT
+          "Something that looks like a face",
+          "Something that looks like a heart",
+          "Something that resembles an animal",
+          "Something that resembles a map",
+          "Something that represents freedom",
+          "Something that represents time",
+          "Something that represents luck",
+          "Something that represents patience",
+          "Something that represents childhood",
+          "Something that represents adventure",
+          "Something that represents loneliness",
+          "Something that represents friendship",
+          "Something that represents growth",
+          "Something that represents change",
+          "Something that represents strength",
+          "Something that represents curiosity",
+          "Something that represents creativity",
+          "Something that represents home",
+          "Something that represents the future",
+          "Something that represents the past",
+          "Something that looks out of place",
+          "Something that looks alive but isn't",
+          "Something that appears to be moving",
+          "Something that looks like it belongs in a fairytale",
+          "Something that looks like a secret",
+          "Something that looks impossible",
+          "Something that looks unfinished",
+          "Something that looks ancient",
+          "Something that looks brand new",
+          "Something that seems to have a story behind it",
+        ],
+        ru: [
+          // КОНКРЕТНОЕ / ВИЗУАЛЬНОЕ
+          "Красный амбар",
+          "Жёлтое такси",
+          "Зелёная скамейка",
+          "Синий почтовый ящик",
+          "Розовый фламинго на газоне",
+          "Белый штакетный забор",
+          "Чёрная ворона",
+          "Гнедая лошадь",
+          "Серая цапля",
+          "Оранжевая тыква",
+          "Фиолетовая дверь",
+          "Золотая монета",
+          "Серебристый автомобиль",
+          "Ржавый велосипед",
+          "Кирпичная труба",
+          "Шиферная крыша",
+          "Мощёная дорожка",
+          "Гравийная дорожка",
+          "Металлическая решётка",
+          "Деревянная телега",
+          "Стеклянная бутылка",
+          "Керамический горшок",
+          "Черепица",
+          "Верёвочные качели",
+          "Гамак",
+          "Птичья купальня",
+          "Компостный ящик",
+          "Бочка для дождевой воды",
+          "Пожарный гидрант",
+          "Телефонная будка",
+          "Погнутый дорожный знак",
+          "Дорожный конус",
+          "Строительный кран",
+          "Мусорный контейнер за зданием",
+          "Пожарная лестница",
+          "Балкон с цветами",
+          "Крыльцо с креслами-качалками",
+          "Окно с сидящей кошкой",
+          "Дверь с венком",
+          "Лестница в никуда",
+          "Тоннель",
+          "Мост над сухой землёй",
+          "Ручей с камнями-переправой",
+          "Пруд с кувшинками",
+          "Упавшее бревно",
+          "Пень с видимыми кольцами",
+          "Камень, раскрашенный под божью коровку",
+          "Мусор, похожий на арт-объект",
+          "Потерянная перчатка на перилах",
+          "Одинокий ботинок на проводе",
+          "Сломанный зонт",
+          "Пустой раскладной стул",
+          "Пикниковый стол с нарисованной шахматной доской",
+          "Торговый автомат в неожиданном месте",
+          "Часы, показывающие неверное время",
+          "Число меньше 10",
+          "Палиндром на номерном знаке",
+          "Слово, написанное на земле",
+          "Сердце, нарисованное в пыли",
+          "Развилка на три дороги",
+          "Круг из камней",
+          "Узор трещин на асфальте",
+          "Тень в форме животного",
+          "Облако, похожее на что-то",
+          "Надкусанное яблоко на стене",
+          "Одинокая спелая ягода на кусте",
+          "Лист с дырками от насекомых",
+          "Одуванчик с пушинками",
+          "Четырёхлистный клевер",
+          "След улитки на бетоне",
+          "Слизень на тротуаре",
+          "Жук на спине",
+          "Гусеница на стебле",
+          "Стрекоза на ветке",
+          "Мотылёк на оконной сетке",
+          "Осиное гнездо под карнизом",
+          "Муравейник",
+          "Паук с коконом",
+          "Многоножка на камне",
+          "Дождевой червь после дождя",
+          "Перо в ветвях",
+          "Кость (возможно, от чьего-то обеда)",
+          "Брошенный ботинок",
+          "Одинокая серёжка на земле",
+          "Пуговица",
+          "Ключ без замка",
+          "Замок на мосту",
+          "Монета орлом вверх",
+          "Корешок билета",
+          "Крышка от бутылки",
+          "Смятая банка",
+          "Порванная фотография",
+          "Брошенный список покупок",
+          "Записка в щели стены",
+          "Наклейка на фонарном столбе",
+          "Рисунок мелом на асфальте",
+          "Отпечаток руки в сыром цементе",
+          "Трещина в форме континента",
+          "Труба, из которой капает вода",
+          "Термостат на внешней стене",
+          "Свет горит днём",
+          "Спутниковая тарелка",
+          "Труба без дыма",
+          "Приоткрытая дверь",
+          "Ярко-красная входная дверь",
+          "Синий велосипед",
+          "Жёлтый цветок",
+          "Фиолетовый цветок",
+          "Белый цветок",
+          "Чёрный кот",
+          "Собака крупнее лабрадора",
+          "Крошечная собачка",
+          "Еловая шишка",
+          "Гриб",
+          "Паутина",
+          "Птичье гнездо",
+          "Перо",
+          "Бабочка",
+          "Шмель",
+          "Белка",
+          "Улитка",
+          "Дерево с обнажёнными корнями",
+          "Дерево, которое не обхватить руками",
+          "Дерево, прорастающее сквозь забор",
+          "Здание в плюще",
+          "Здание с красной крышей",
+          "Колокольня",
+          "Фонтан",
+          "Статуя",
+          "Мурал или стрит-арт",
+          "Уличные часы",
+          "Пешеходный мостик",
+          "Каменная стена",
+          "Деревянный забор",
+          "Ветряной колокольчик",
+          "Садовый гном",
+          "Почтовый ящик не красного цвета",
+          "Развевающийся флаг",
+          "Припаркованная Tesla",
+          "Припаркованный Volvo",
+          "Припаркованный мотоцикл",
+          "Машина с наклейками",
+          "Автомобиль старше 20 лет",
+          "Скамейка у воды",
+          "Скамейка у дороги",
+          "Вывеска на иностранном языке",
+          "Число больше 1000",
+          "Закрытые ворота на замок",
+          "Лестница",
+          "Лужа с отражением",
+          "Отражение в окне",
+          "Что-то идеально круглое",
+          "Что-то оранжевое",
+          // ТВОЁ ЛЮБИМОЕ...
+          "Твоё любимое дерево",
+          "Твой любимый цветок",
+          "Твой любимый дом",
+          "Твоя любимая входная дверь",
+          "Твоя любимая улица",
+          "Твоя любимая тропинка",
+          "Твоя любимая скамейка",
+          "Твой любимый вид",
+          "Твой любимый мост",
+          "Твой любимый сад",
+          "Твоё любимое здание",
+          "Твоё любимое окно",
+          "Твой любимый почтовый ящик",
+          "Твой любимый забор",
+          "Твой любимый стрит-арт",
+          "Твоя любимая статуя",
+          "Твоё любимое скрытое место",
+          "Твоё любимое тихое место",
+          "Твоя любимая яркая вещь",
+          "Твоё любимое отражение",
+          "Твоя любимая тень",
+          "Твоя любимая текстура",
+          "Твой любимый старый предмет",
+          "Твой любимый новый предмет",
+          "Твой любимый припаркованный транспорт",
+          "Твоя любимая вывеска",
+          "Твой любимый камень",
+          "Твоё любимое облако",
+          "Твоя любимая случайная находка",
+          "Твоя любимая сфотографированная вещь",
+          "Вещь, которая тебя улыбнула",
+          "Вещь, которую никто не замечает",
+          "Твоё любимое в природе",
+          "Твоё любимое творение человека",
+          "Место, куда хочется вернуться",
+          // ИГРИВОЕ / ОСТРОУМНОЕ
+          "Очень маленькое окошко",
+          "Велосипед",
+          "Камень, похожий на картошку",
+          "Облако, похожее на еду",
+          "Забор, переживший лучшие времена",
+          "Скамейка с сомнительным видом",
+          "Почтовый ящик неожиданного цвета",
+          "Одинокий ботинок",
+          "Потерянная перчатка",
+          "Пара потерянных перчаток",
+          "Тележка из супермаркета не на месте",
+          "Стул на улице",
+          "Стул, которым явно не пользуются",
+          "Вывеска со слишком многими восклицательными знаками",
+          "Вывеска, сообщающая очевидное",
+          "Вывеска, порождающая вопросы",
+          "Дверь, которую никогда не выберешь",
+          "Дверь, которую выберешь непременно",
+          "Комнатное растение в окне",
+          "Автомобиль с характером",
+          "Машина старше некоторых игроков",
+          "Транспорт, готовый к приключениям",
+          "Транспорт, который, кажется, никогда не трогается",
+          "Садовый гном на посту",
+          "Садовое украшение, которое удивляет",
+          "Почтовый ящик с достоинством",
+          "Забор, проигрывающий борьбу с природой",
+          "Дерево в неудобном месте",
+          "Цветок в неудобном месте",
+          "Гриб, выглядящий важно",
+          "Очень кривое дерево",
+          "Очень прямое дерево",
+          "Скамейка, заслуживающая награды",
+          "Скамейка, на которую не сядешь",
+          "Птица в необычном месте",
+          "Перо в странном месте",
+          "Паутина, выполненная отлично",
+          "Лужа, достойная фотографии",
+          "Идеально круглый камень",
+          "Неидеально идеальный камень",
+          "Крошечный мостик",
+          "Огромная лужа",
+          "Крошечный цветок",
+          "Огромный сорняк",
+          "Ворота, полные драматизма",
+          "Ворота, которые явно лишние",
+          "Тропинка, похожая на срезанный путь",
+          "Тропинка, явно не являющаяся срезанным путём",
+          "Лестница в никуда",
+          "Лестница, на которую стоит подняться",
+          "Усердно дымящая труба",
+          "Труба-декорация",
+          "Окно с характером",
+          "Подозрительно маленькое окно",
+          "Дом с чрезмерными украшениями",
+          "Дом почти без украшений",
+          "Дерево с несколькими стволами",
+          "Дерево с дуплом",
+          "Ветка, напоминающая что-то узнаваемое",
+          "Облако, изображающее что-то",
+          "Фонарный столб, бросающийся в глаза",
+          "Фонарный столб, сливающийся с окружением",
+          "Велосипедная корзина",
+          "Тачка",
+          "Флюгер",
+          "Скворечник",
+          "Пугало",
+          "Фонтан, который работает",
+          "Число больше 5000",
+          "Уличные часы, показывающие неверное время",
+          "Тень, крадущая сцену",
+          "Мох, живущий в своё удовольствие",
+          "Очень ухоженный сад",
+          "Очень хаотичный сад",
+          "Клумба с цветовой темой",
+          "Здание с необычной крышей",
+          "Здание необычного цвета",
+          "Красная дверь",
+          "Синяя дверь",
+          "Жёлтая дверь",
+          "Фиолетовый предмет",
+          "Розовый предмет",
+          "Полосатый предмет",
+          "Предмет в горошек",
+          "Случайно возникшая форма сердца",
+          "Лицо, скрытое в предмете",
+          "Лицо, скрытое в природе",
+          // СУБЪЕКТИВНОЕ
+          "Место, куда привёл бы туриста",
+          "Место для первого свидания",
+          "Место, где спокойно",
+          "Место, которое кажется загадочным",
+          "Место, которое кажется забытым",
+          "Место, которое выглядит дорого",
+          "Место с ощущением истории",
+          "Место, которое кажется волшебным",
+          "Место, которое кажется одиноким",
+          "Место, которое зовёт в приключение",
+          "Место, которое кажется скрытым",
+          "Место, которое неожиданно прекрасно",
+          "Место, заслуживающее внимания",
+          "Место, куда хочется вернуться",
+          "Место, которое раньше не замечал",
+          "Место, которое вызывает любопытство",
+          "Место, выглядящее лучше, чем есть",
+          "Место, выглядящее хуже, чем есть",
+          "Место, где почитал бы книгу",
+          "Место, где встретил бы закат",
+          "Место для воображаемой киносцены",
+          "Место для обложки альбома",
+          "Место, где замедляешь шаг",
+          "Скрытое место",
+          // АБСТРАКТНОЕ
+          "Что-то похожее на лицо",
+          "Что-то похожее на сердце",
+          "Что-то, напоминающее животное",
+          "Что-то, напоминающее карту",
+          "Что-то, символизирующее свободу",
+          "Что-то, символизирующее время",
+          "Что-то, символизирующее удачу",
+          "Что-то, символизирующее терпение",
+          "Что-то, символизирующее детство",
+          "Что-то, символизирующее приключение",
+          "Что-то, символизирующее одиночество",
+          "Что-то, символизирующее дружбу",
+          "Что-то, символизирующее рост",
+          "Что-то, символизирующее перемены",
+          "Что-то, символизирующее силу",
+          "Что-то, символизирующее любопытство",
+          "Что-то, символизирующее творчество",
+          "Что-то, символизирующее дом",
+          "Что-то, символизирующее будущее",
+          "Что-то, символизирующее прошлое",
+          "Что-то не на своём месте",
+          "Что-то живое с виду, но не живое",
+          "Что-то, кажущееся движущимся",
+          "Что-то из сказки",
+          "Что-то похожее на секрет",
+          "Что-то невозможное",
+          "Что-то незаконченное",
+          "Что-то, выглядящее очень древним",
+          "Что-то совершенно новое",
+          "Что-то, за которым чувствуется история",
+        ],
+      };
 
+      // ── State ─────────────────────────────────────────────────────────────────────
+      let lang = "en";
       let found = new Array(9).fill(false);
       let currentItems = [];
 
+      // ── Helpers ───────────────────────────────────────────────────────────────────
       function shuffle(arr) {
         const a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
@@ -544,17 +1213,56 @@
       }
 
       function checkWin() {
-        // rows
-        for (let r = 0; r < 3; r++) {
+        for (let r = 0; r < 3; r++)
           if ([0, 1, 2].every((c) => found[r * 3 + c]))
             return [r * 3, r * 3 + 1, r * 3 + 2];
-        }
-        // cols
-        for (let c = 0; c < 3; c++) {
+        for (let c = 0; c < 3; c++)
           if ([0, 1, 2].every((r) => found[r * 3 + c]))
             return [c, c + 3, c + 6];
-        }
         return null;
+      }
+
+      // ── UI ────────────────────────────────────────────────────────────────────────
+      function applyLang() {
+        const t = LANG[lang];
+        document.documentElement.lang = lang;
+        document.getElementById("t-title").textContent = t.title;
+        document.getElementById("t-sub").textContent = t.sub;
+        document.getElementById("t-rules-head").textContent = t.rulesHead;
+        document.getElementById("t-rules-body").innerHTML = t.rulesBody;
+        document.getElementById("t-win-p").textContent = t.winP;
+        document.getElementById("t-win-small").textContent = t.winSmall;
+        document.getElementById("t-label-name").textContent = t.labelName;
+        document.getElementById("t-label-steps").textContent = t.labelSteps;
+        document.getElementById("t-notes").textContent = t.notes;
+        document.getElementById("t-btn-new").textContent = t.btnNew;
+        document.getElementById("t-btn-print").textContent = t.btnPrint;
+        document.title = t.title + " 🌿";
+
+        // dateline
+        document.getElementById("dateline").textContent =
+          new Date().toLocaleDateString(t.locale, {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+
+        // lang buttons
+        document
+          .querySelectorAll(".lang-btn")
+          .forEach((b) =>
+            b.classList.toggle(
+              "active",
+              b.textContent.trim().toLowerCase() === lang,
+            ),
+          );
+      }
+
+      function setLang(l) {
+        lang = l;
+        applyLang();
+        newCard();
       }
 
       function render() {
@@ -562,7 +1270,6 @@
         const banner = document.getElementById("winBanner");
         const win = checkWin();
 
-        // cells
         grid.innerHTML = "";
         currentItems.forEach((item, i) => {
           const cell = document.createElement("div");
@@ -578,29 +1285,21 @@
           grid.appendChild(cell);
         });
 
-        // win banner
         if (win) banner.classList.add("show");
         else banner.classList.remove("show");
       }
 
       function newCard() {
-        currentItems = shuffle(ITEMS).slice(0, 9);
+        currentItems = shuffle(ITEMS[lang]).slice(0, 9);
         found = new Array(9).fill(false);
-        // clear text fields
         document
           .querySelectorAll(".field-line, .note-line")
           .forEach((el) => (el.value = ""));
         render();
       }
 
-      // dateline
-      const now = new Date();
-      document.getElementById("dateline").textContent = now.toLocaleDateString(
-        "en-GB",
-        { weekday: "long", day: "numeric", month: "long", year: "numeric" },
-      );
-
-      // init
+      // ── Init ──────────────────────────────────────────────────────────────────────
+      applyLang();
       newCard();
     </script>
   </body>
