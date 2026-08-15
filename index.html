@@ -445,7 +445,7 @@
         animation: nudge 2.2s var(--ease-out) 3;
       }
 
-      /* ── Below the fold: win banner + card details ───────────── */
+      /* ── Below the fold: card details ────────────────────────── */
       .below {
         display: flex;
         flex-direction: column;
@@ -453,10 +453,13 @@
         padding-top: 1.4rem;
       }
 
+      /* The win banner sits inside the first screen, directly under the
+         grid, so it is noticed without scrolling. */
       .win-banner {
         display: none;
+        flex: 0 0 auto;
         text-align: center;
-        padding: 1.1rem 1.2rem;
+        padding: 0.7rem 1rem;
         border-radius: var(--r-md);
         background: linear-gradient(
           145deg,
@@ -471,8 +474,13 @@
         animation: rise 0.45s var(--ease-spring);
       }
 
+      /* Leave the grid a little less room while the banner is showing. */
+      .screen:has(.win-banner.show) {
+        --chrome: 300px;
+      }
+
       .win-banner p {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         font-weight: 700;
         letter-spacing: -0.02em;
         color: var(--accent-deep);
@@ -805,6 +813,10 @@
         :root {
           --chrome: 240px;
           --pad-x: 1.5rem;
+        }
+
+        .screen:has(.win-banner.show) {
+          --chrome: 340px;
         }
 
         .topbar {
@@ -1205,6 +1217,13 @@
           <div class="grid" id="grid"></div>
         </div>
 
+        <div class="win-banner" id="winBanner">
+          <p id="t-win-p">🌿 Bingo! You can head home.</p>
+          <small id="t-win-small"
+            >Fill in your steps below and keep as a souvenir.</small
+          >
+        </div>
+
         <div class="actions">
           <button class="action primary" id="t-btn-new">New card</button>
           <button class="action" id="t-btn-print">Print</button>
@@ -1215,13 +1234,6 @@
 
       <!-- ── Below the fold ───────────────────────────────────── -->
       <div class="below" id="below">
-        <div class="win-banner" id="winBanner">
-          <p id="t-win-p">🌿 Bingo! You can head home.</p>
-          <small id="t-win-small"
-            >Fill in your steps below and keep as a souvenir.</small
-          >
-        </div>
-
         <div class="card-form glass">
           <div class="dateline" id="dateline"></div>
 

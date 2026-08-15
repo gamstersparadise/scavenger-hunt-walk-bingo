@@ -48,7 +48,6 @@ let theme = DEFAULT_THEME;
 let opinionItems = false; // vibe-based prompts are opt-in
 let found = new Array(9).fill(false);
 let currentItems = [];
-let wasWon = false;
 
 function shuffle(arr) {
   const a = [...arr];
@@ -197,14 +196,8 @@ function render() {
     grid.appendChild(cell);
   });
 
-  // The banner lives below the fold — bring it into view on the winning tap.
-  if (win) {
-    banner.classList.add("show");
-    if (!wasWon) banner.scrollIntoView({ behavior: "smooth", block: "center" });
-  } else {
-    banner.classList.remove("show");
-  }
-  wasWon = Boolean(win);
+  // The banner sits right under the grid, so no scrolling is needed.
+  banner.classList.toggle("show", Boolean(win));
 }
 
 function newCard() {
