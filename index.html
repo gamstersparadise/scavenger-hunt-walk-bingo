@@ -2,79 +2,234 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f2f4f7" />
     <title>Walk Bingo 🌿</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Courier+Prime:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
     <style>
+      /* ══════════════════════════════════════════════════════════
+         Walk Bingo — light "liquid glass" system
+         Everything is driven by --h (accent hue), set per theme.
+         ══════════════════════════════════════════════════════════ */
+
+      /* Registered so the accent can *animate* between themes, not snap. */
+      @property --h {
+        syntax: "<number>";
+        inherits: true;
+        initial-value: 142;
+      }
+
       :root {
-        --ink: #1a1a0e;
-        --paper: #f5f0e8;
-        --moss: #4a6741;
-        --bark: #8b6f47;
-        --cream: #ede8d8;
-        --rule: #c8bfa8;
+        --h: 142; /* accent hue, overridden per walk theme */
+        transition: --h 0.55s var(--ease-out);
+
+        --accent: hsl(var(--h) 62% 42%);
+        --accent-soft: hsl(var(--h) 70% 55%);
+        --accent-deep: hsl(var(--h) 55% 30%);
+
+        --ink: #1c1c1e;
+        --ink-2: #3c3c4399;
+        --ink-3: #3c3c4366;
+
+        --glass: rgba(255, 255, 255, 0.62);
+        --glass-strong: rgba(255, 255, 255, 0.82);
+        --glass-quiet: rgba(255, 255, 255, 0.42);
+        --hairline: rgba(255, 255, 255, 0.75);
+        --edge: rgba(0, 0, 0, 0.06);
+
+        --r-lg: 28px;
+        --r-md: 20px;
+        --r-sm: 14px;
+        --r-pill: 999px;
+
+        --shadow-lift:
+          0 1px 1px rgba(0, 0, 0, 0.03), 0 8px 24px -8px rgba(0, 0, 0, 0.14),
+          0 24px 48px -24px rgba(0, 0, 0, 0.18);
+        --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+        --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+        --font:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+          "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
       }
 
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html {
+        -webkit-text-size-adjust: 100%;
       }
 
       body {
-        background: var(--paper);
+        font-family: var(--font);
         color: var(--ink);
-        font-family: "Courier Prime", monospace;
+        background: #eef0f4;
         min-height: 100vh;
-        padding: 2rem 1rem 4rem;
+        min-height: 100dvh;
+        padding: max(1.5rem, env(safe-area-inset-top)) 1.1rem 4rem;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Ambient mesh — the light the glass refracts */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: -20vmax;
+        z-index: -1;
+        background:
+          radial-gradient(
+            40vmax 40vmax at 12% 8%,
+            hsl(var(--h) 85% 78% / 0.75),
+            transparent 62%
+          ),
+          radial-gradient(
+            38vmax 38vmax at 92% 18%,
+            hsl(calc(var(--h) + 55) 90% 80% / 0.6),
+            transparent 60%
+          ),
+          radial-gradient(
+            46vmax 46vmax at 76% 96%,
+            hsl(calc(var(--h) - 45) 88% 80% / 0.62),
+            transparent 62%
+          ),
+          radial-gradient(
+            32vmax 32vmax at 22% 78%,
+            hsl(calc(var(--h) + 20) 92% 84% / 0.5),
+            transparent 60%
+          ),
+          #f4f5f8;
+        filter: saturate(1.15);
+        transition: background 0.7s var(--ease-out);
       }
 
       .page {
-        max-width: 640px;
+        max-width: 620px;
         margin: 0 auto;
-        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
       }
 
-      /* ── Lang switch ── */
-      .lang-switch {
+      /* ── Glass primitive ─────────────────────────────────────── */
+      .glass {
+        background: var(--glass);
+        -webkit-backdrop-filter: blur(28px) saturate(180%);
+        backdrop-filter: blur(28px) saturate(180%);
+        border: 0.5px solid var(--hairline);
+        border-radius: var(--r-lg);
+        box-shadow: var(--shadow-lift), var(--shadow-inset);
+      }
+
+      .eyebrow {
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent-deep);
+      }
+
+      /* ── Top bar: segmented language control ─────────────────── */
+      .topbar {
         display: flex;
         justify-content: flex-end;
-        gap: 0.2rem;
-        margin-bottom: 1rem;
+      }
+
+      .lang-switch {
+        display: inline-flex;
+        gap: 2px;
+        padding: 3px;
+        border-radius: var(--r-pill);
+        background: var(--glass-quiet);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 0.5px solid var(--hairline);
+        box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.15);
       }
 
       .lang-btn {
-        font-family: "Courier Prime", monospace;
-        font-size: 0.72rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        border: 1px solid var(--rule);
+        font: inherit;
+        font-size: 0.76rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        border: none;
         background: transparent;
-        color: var(--bark);
-        padding: 0.25rem 0.6rem;
+        color: var(--ink-2);
+        padding: 0.34rem 0.85rem;
+        border-radius: var(--r-pill);
         cursor: pointer;
-        border-radius: 1px;
-        transition: all 0.15s;
+        transition:
+          background 0.25s var(--ease-out),
+          color 0.25s var(--ease-out);
       }
 
       .lang-btn.active {
-        border-color: var(--moss);
-        color: var(--moss);
-        font-weight: 700;
+        background: var(--glass-strong);
+        color: var(--ink);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
       }
 
       .lang-btn:hover:not(.active) {
-        border-color: var(--bark);
         color: var(--ink);
       }
 
-      /* ── Theme picker ── */
+      /* ── Header ──────────────────────────────────────────────── */
+      header {
+        text-align: center;
+        padding: 1.6rem 1.2rem 1.8rem;
+      }
+
+      header h1 {
+        font-size: clamp(2.3rem, 9vw, 3.1rem);
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        line-height: 1.02;
+        background: linear-gradient(
+          135deg,
+          var(--accent-deep),
+          var(--accent-soft)
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      header .sub {
+        font-size: 0.95rem;
+        color: var(--ink-2);
+        margin-top: 0.45rem;
+        letter-spacing: -0.01em;
+      }
+
+      .theme-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-top: 1rem;
+        padding: 0.32rem 0.85rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border-radius: var(--r-pill);
+        color: var(--accent-deep);
+        background: hsl(var(--h) 80% 92% / 0.75);
+        border: 0.5px solid hsl(var(--h) 60% 70% / 0.4);
+      }
+
+      header .dateline {
+        font-size: 0.74rem;
+        color: var(--ink-3);
+        margin-top: 0.7rem;
+        letter-spacing: 0.01em;
+      }
+
+      /* ── Theme picker ────────────────────────────────────────── */
       .theme-section {
-        margin-bottom: 2rem;
+        padding: 1.15rem 1.2rem 1.3rem;
       }
 
       .theme-head {
@@ -82,315 +237,407 @@
         align-items: baseline;
         justify-content: space-between;
         gap: 1rem;
-        margin-bottom: 0.45rem;
-      }
-
-      .theme-head strong {
-        font-size: 0.72rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--moss);
       }
 
       .theme-head small {
-        font-size: 0.72rem;
-        color: var(--bark);
-        font-style: italic;
+        font-size: 0.76rem;
+        color: var(--ink-3);
       }
 
       .theme-tagline {
-        font-size: 0.78rem;
-        color: var(--bark);
-        margin-bottom: 0.75rem;
+        font-size: 0.88rem;
+        color: var(--ink-2);
+        margin: 0.35rem 0 0.9rem;
         min-height: 1.2em;
       }
 
       .theme-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(7.2rem, 1fr));
-        gap: 0.45rem;
+        grid-template-columns: repeat(auto-fill, minmax(6.6rem, 1fr));
+        gap: 0.5rem;
       }
 
       .theme-btn {
-        font-family: "Courier Prime", monospace;
-        font-size: 0.68rem;
-        letter-spacing: 0.04em;
-        text-transform: none;
-        border: 1px solid var(--rule);
-        background: var(--paper);
-        color: var(--ink);
-        padding: 0.45rem 0.35rem;
+        font: inherit;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--ink-2);
+        background: var(--glass-quiet);
+        border: 0.5px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--r-sm);
+        padding: 0.6rem 0.35rem;
         cursor: pointer;
-        border-radius: 1px;
-        transition: all 0.15s;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.15rem;
+        gap: 0.3rem;
         line-height: 1.2;
+        transition:
+          transform 0.3s var(--ease-spring),
+          background 0.25s var(--ease-out),
+          color 0.25s var(--ease-out),
+          box-shadow 0.25s var(--ease-out);
       }
 
       .theme-btn .theme-emoji {
-        font-size: 1rem;
+        font-size: 1.25rem;
         line-height: 1;
+        transition: transform 0.35s var(--ease-spring);
       }
 
       .theme-btn .theme-name {
         text-align: center;
       }
 
-      .theme-btn.active {
-        border-color: var(--moss);
-        background: var(--cream);
-        color: var(--moss);
-        font-weight: 700;
-      }
-
       .theme-btn:hover:not(.active) {
-        border-color: var(--bark);
-        background: var(--cream);
+        background: var(--glass-strong);
+        color: var(--ink);
+        transform: translateY(-2px);
       }
 
-      .theme-badge {
-        font-size: 0.72rem;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--moss);
-        margin-top: 0.35rem;
+      .theme-btn:active {
+        transform: scale(0.95);
       }
 
-      /* ── Header ── */
-      header {
-        text-align: center;
-        margin-bottom: 2.5rem;
-        padding-top: 0.5rem;
+      .theme-btn.active {
+        color: #fff;
+        font-weight: 600;
+        background: linear-gradient(
+          145deg,
+          var(--accent-soft),
+          var(--accent-deep)
+        );
+        border-color: transparent;
+        box-shadow:
+          0 6px 18px -6px hsl(var(--h) 60% 40% / 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.35);
       }
 
-      header h1 {
-        font-family: "Playfair Display", serif;
-        font-size: clamp(2.4rem, 8vw, 3.6rem);
-        font-weight: 700;
-        line-height: 1;
-        color: var(--moss);
+      .theme-btn.active .theme-emoji {
+        transform: scale(1.12);
       }
 
-      header .sub {
-        font-family: "Playfair Display", serif;
-        font-style: italic;
-        font-size: 1rem;
-        color: var(--bark);
-        margin-top: 0.4rem;
-      }
-
-      header .dateline {
-        font-size: 0.78rem;
-        color: var(--bark);
-        margin-top: 0.6rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      /* ── Rules ── */
+      /* ── Rules ───────────────────────────────────────────────── */
       .rules {
-        border: 1.5px solid var(--moss);
-        border-radius: 2px;
-        padding: 0.9rem 1.2rem;
-        margin-bottom: 2rem;
-        font-size: 0.82rem;
-        line-height: 1.7;
-        background: var(--cream);
+        padding: 1rem 1.2rem 1.1rem;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        color: var(--ink-2);
+        border-radius: var(--r-md);
       }
 
       .rules strong {
-        font-size: 0.72rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--moss);
         display: block;
         margin-bottom: 0.3rem;
       }
 
-      /* ── Grid ── */
-      .grid-wrap {
-        margin-bottom: 1.5rem;
-      }
-
+      /* ── Grid ────────────────────────────────────────────────── */
       .grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        border-top: 2px solid var(--ink);
-        border-left: 2px solid var(--ink);
+        gap: 0.55rem;
       }
 
       .cell {
-        border-right: 2px solid var(--ink);
-        border-bottom: 2px solid var(--ink);
         aspect-ratio: 1 / 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 0.6rem;
+        padding: 0.7rem 0.5rem;
         text-align: center;
-        font-size: clamp(0.65rem, 2.2vw, 0.82rem);
-        line-height: 1.35;
+        font-size: clamp(0.7rem, 2.6vw, 0.85rem);
+        font-weight: 500;
+        line-height: 1.3;
+        letter-spacing: -0.01em;
+        color: var(--ink);
         cursor: pointer;
         user-select: none;
         position: relative;
-        transition: background 0.15s;
-        background: var(--paper);
+        overflow: hidden;
+        border-radius: var(--r-md);
+        background: var(--glass);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        backdrop-filter: blur(24px) saturate(180%);
+        border: 0.5px solid var(--hairline);
+        box-shadow:
+          0 4px 14px -6px rgba(0, 0, 0, 0.16), var(--shadow-inset);
+        transition:
+          transform 0.32s var(--ease-spring),
+          background 0.3s var(--ease-out),
+          color 0.3s var(--ease-out),
+          box-shadow 0.3s var(--ease-out);
+      }
+
+      /* specular highlight sweep */
+      .cell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          150deg,
+          rgba(255, 255, 255, 0.55) 0%,
+          rgba(255, 255, 255, 0) 42%
+        );
+        pointer-events: none;
       }
 
       .cell:hover {
-        background: var(--cream);
+        transform: translateY(-3px);
+        background: var(--glass-strong);
+        box-shadow:
+          0 10px 26px -8px rgba(0, 0, 0, 0.22), var(--shadow-inset);
       }
+
+      .cell:active {
+        transform: scale(0.96);
+      }
+
       .cell.found {
-        background: var(--moss);
-        color: var(--paper);
+        color: #fff;
+        font-weight: 600;
+        background: linear-gradient(
+          150deg,
+          var(--accent-soft),
+          var(--accent-deep)
+        );
+        border-color: transparent;
+        box-shadow:
+          0 10px 24px -8px hsl(var(--h) 60% 38% / 0.6),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        animation: pop 0.36s var(--ease-spring);
       }
+
       .cell.found::after {
         content: "✓";
         position: absolute;
-        top: 4px;
-        right: 6px;
-        font-size: 0.7rem;
-        opacity: 0.7;
-      }
-      .cell.winner {
-        background: var(--bark);
-        color: var(--paper);
+        top: 7px;
+        right: 9px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        opacity: 0.75;
       }
 
-      /* ── Win banner ── */
+      .cell.winner {
+        box-shadow:
+          0 0 0 2px hsl(var(--h) 90% 70% / 0.9),
+          0 14px 34px -8px hsl(var(--h) 70% 45% / 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        animation: pulse 1.6s var(--ease-out) infinite;
+      }
+
+      /* ── Win banner ──────────────────────────────────────────── */
       .win-banner {
         display: none;
         text-align: center;
-        border: 2px solid var(--moss);
-        background: var(--cream);
-        padding: 1rem;
-        margin-bottom: 2rem;
-        animation: fadeIn 0.4s ease;
-      }
-      .win-banner.show {
-        display: block;
-      }
-      .win-banner p {
-        font-family: "Playfair Display", serif;
-        font-size: 1.3rem;
-        color: var(--moss);
-      }
-      .win-banner small {
-        font-size: 0.78rem;
-        color: var(--bark);
+        padding: 1.15rem 1.2rem;
+        border-radius: var(--r-md);
+        background: linear-gradient(
+          145deg,
+          hsl(var(--h) 90% 95% / 0.8),
+          hsl(var(--h) 80% 88% / 0.6)
+        );
+        border: 0.5px solid hsl(var(--h) 60% 75% / 0.5);
       }
 
-      /* ── Fields ── */
-      .fields {
-        padding: 0.8rem 0;
-        margin-bottom: 2rem;
+      .win-banner.show {
+        display: block;
+        animation: rise 0.45s var(--ease-spring);
+      }
+
+      .win-banner p {
+        font-size: 1.2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--accent-deep);
+      }
+
+      .win-banner small {
+        display: block;
+        margin-top: 0.25rem;
         font-size: 0.82rem;
-        padding-bottom: 16px;
+        color: var(--ink-2);
+      }
+
+      /* ── Fields & notes ──────────────────────────────────────── */
+      .card-form {
+        padding: 1.1rem 1.2rem 1.3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
       }
 
       .field-row {
         display: flex;
-        align-items: baseline;
-        gap: 0.5rem;
-        padding: 0.35rem 0;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--glass-quiet);
+        border: 0.5px solid rgba(255, 255, 255, 0.55);
+        border-radius: var(--r-sm);
+        padding: 0.55rem 0.85rem;
+        transition:
+          border-color 0.2s var(--ease-out),
+          box-shadow 0.2s var(--ease-out);
+      }
+
+      .field-row:focus-within {
+        border-color: hsl(var(--h) 65% 60% / 0.6);
+        box-shadow: 0 0 0 3px hsl(var(--h) 70% 60% / 0.18);
       }
 
       .field-row label {
-        min-width: 9rem;
-        color: var(--bark);
-        font-size: 0.75rem;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+        min-width: 7.5rem;
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--ink-2);
         flex-shrink: 0;
       }
 
-      .field-line {
-        border: none;
-        border-bottom: 1px solid var(--rule);
-        background: transparent;
-        font-family: "Courier Prime", monospace;
-        font-size: 0.85rem;
+      .field-line,
+      .note-line {
+        font: inherit;
+        font-size: 0.9rem;
         color: var(--ink);
-        padding: 0.1rem 0.2rem;
+        border: none;
+        background: transparent;
         outline: none;
         width: 100%;
-      }
-      .field-line::placeholder {
-        color: var(--rule);
+        padding: 0;
       }
 
-      /* ── Notes ── */
+      .field-line::placeholder,
+      .note-line::placeholder {
+        color: var(--ink-3);
+      }
+
       .notes-label {
-        font-size: 0.72rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--bark);
-        margin-bottom: 0.4rem;
-      }
-
-      .notes-lines {
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-        margin-bottom: 2rem;
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--ink-2);
+        margin-top: 0.5rem;
       }
 
       .note-line {
-        border: none;
-        border-bottom: 1px solid var(--rule);
-        background: transparent;
-        font-family: "Courier Prime", monospace;
-        font-size: 0.85rem;
-        color: var(--ink);
-        padding: 0.1rem 0.2rem;
-        outline: none;
-        width: 100%;
+        background: var(--glass-quiet);
+        border: 0.5px solid rgba(255, 255, 255, 0.55);
+        border-radius: var(--r-sm);
+        padding: 0.6rem 0.85rem;
+        transition:
+          border-color 0.2s var(--ease-out),
+          box-shadow 0.2s var(--ease-out);
       }
 
-      /* ── Buttons ── */
+      .note-line:focus {
+        border-color: hsl(var(--h) 65% 60% / 0.6);
+        box-shadow: 0 0 0 3px hsl(var(--h) 70% 60% / 0.18);
+      }
+
+      /* ── Actions ─────────────────────────────────────────────── */
       .actions {
         display: flex;
-        gap: 0.8rem;
+        gap: 0.6rem;
         justify-content: center;
         flex-wrap: wrap;
-        margin-top: 2rem;
+        margin-top: 0.4rem;
       }
 
-      button {
-        font-family: "Courier Prime", monospace;
-        font-size: 0.82rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        border: 1.5px solid var(--ink);
-        background: transparent;
-        color: var(--ink);
-        padding: 0.55rem 1.4rem;
+      button.action {
+        font: inherit;
+        font-size: 0.88rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        padding: 0.72rem 1.6rem;
+        border-radius: var(--r-pill);
         cursor: pointer;
+        color: var(--ink);
+        background: var(--glass);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        backdrop-filter: blur(24px) saturate(180%);
+        border: 0.5px solid var(--hairline);
+        box-shadow:
+          0 6px 18px -8px rgba(0, 0, 0, 0.22), var(--shadow-inset);
         transition:
-          background 0.15s,
-          color 0.15s;
-        border-radius: 1px;
-      }
-      button:hover {
-        background: var(--moss);
-        color: var(--paper);
-        border-color: var(--moss);
-      }
-      button.primary {
-        background: var(--moss);
-        color: var(--paper);
-        border-color: var(--moss);
-      }
-      button.primary:hover {
-        background: var(--ink);
-        color: var(--paper);
-        border-color: var(--ink);
+          transform 0.3s var(--ease-spring),
+          box-shadow 0.25s var(--ease-out),
+          background 0.25s var(--ease-out);
       }
 
-      /* ── Print ── */
+      button.action:hover {
+        transform: translateY(-2px);
+        background: var(--glass-strong);
+      }
+
+      button.action:active {
+        transform: scale(0.96);
+      }
+
+      button.action.primary {
+        color: #fff;
+        background: linear-gradient(
+          145deg,
+          var(--accent-soft),
+          var(--accent-deep)
+        );
+        border-color: transparent;
+        box-shadow:
+          0 8px 22px -6px hsl(var(--h) 60% 40% / 0.6),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      }
+
+      /* ── Motion ──────────────────────────────────────────────── */
+      @keyframes pop {
+        0% {
+          transform: scale(0.9);
+        }
+        60% {
+          transform: scale(1.04);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(10px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          filter: brightness(1);
+        }
+        50% {
+          filter: brightness(1.08);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      /* Fallback for engines without backdrop-filter */
+      @supports not (backdrop-filter: blur(1px)) {
+        .glass,
+        .cell,
+        button.action,
+        .lang-switch {
+          background: rgba(255, 255, 255, 0.9);
+        }
+      }
+
+      /* ── Print: strip the glass, keep a clean paper card ─────── */
       @media print {
         @page {
           size: A4 portrait;
@@ -403,169 +650,177 @@
         }
 
         body {
-          background: white;
-          background-image: none;
+          background: #fff;
           padding: 0;
-          font-size: 11pt;
+          font-size: 10.5pt;
+          color: #000;
+        }
+
+        body::before {
+          display: none;
         }
 
         .page {
           max-width: 100%;
           height: 100%;
-          display: flex;
-          flex-direction: column;
+          gap: 5mm;
         }
 
-        .lang-switch {
-          display: none;
+        .glass,
+        .cell,
+        .win-banner,
+        .field-row,
+        .note-line {
+          background: #fff !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          box-shadow: none !important;
+          color: #000 !important;
+          animation: none !important;
         }
 
-        .theme-section {
-          margin-bottom: 4mm;
-        }
-
+        .topbar,
         .theme-grid,
-        .theme-head small {
-          display: none;
-        }
-
-        .theme-tagline {
-          margin-bottom: 2mm;
-          min-height: 0;
+        .theme-head small,
+        .actions,
+        .win-banner {
+          display: none !important;
         }
 
         header {
-          margin-bottom: 6mm;
-          padding-top: 0;
+          padding: 0 0 2mm;
         }
         header h1 {
-          font-size: 2rem;
+          font-size: 1.9rem;
+          -webkit-text-fill-color: #000;
+          color: #000;
+          background: none;
         }
         header .sub {
           font-size: 0.8rem;
+          color: #444;
         }
         header .dateline {
-          font-size: 0.65rem;
-          margin-top: 2px;
+          font-size: 0.66rem;
+          margin-top: 2mm;
+          color: #555;
+        }
+        .theme-badge {
+          background: none;
+          border: 0.5pt solid #888;
+          color: #000;
+          margin-top: 2mm;
+        }
+
+        .theme-section {
+          padding: 0;
+          border: none;
+        }
+        .theme-tagline {
+          margin: 0;
+          color: #444;
+          font-size: 0.78rem;
+        }
+        .eyebrow {
+          color: #000;
         }
 
         .rules {
-          padding: 4px 8px;
-          margin-bottom: 5mm;
-          font-size: 0.72rem;
-          line-height: 1.5;
+          padding: 2mm 0;
+          font-size: 0.74rem;
+          line-height: 1.45;
+          border: none;
+          color: #333;
         }
 
-        .grid-wrap {
-          margin-bottom: 5mm;
-          flex-shrink: 0;
-        }
         .grid {
           width: 148mm;
           height: 148mm;
           margin: 0 auto;
+          gap: 0;
+          border-top: 1pt solid #000;
+          border-left: 1pt solid #000;
         }
 
         .cell {
           aspect-ratio: unset;
           font-size: 0.72rem;
-          padding: 4px;
-          cursor: default;
-          background: white !important;
-          color: black !important;
+          font-weight: 400;
+          padding: 3mm 2mm;
+          border: none;
+          border-right: 1pt solid #000;
+          border-bottom: 1pt solid #000;
+          border-radius: 0;
         }
-        .cell:hover {
-          background: white;
-        }
-        .cell.found::after {
-          display: none;
-        }
-
-        .win-banner {
+        .cell::before,
+        .cell::after {
           display: none !important;
         }
 
-        .fields {
-          margin-bottom: 6mm;
-          padding: 4px 0;
+        .card-form {
+          padding: 0;
+          gap: 4mm;
+          border: none;
         }
         .field-row {
-          padding: 4px 0;
+          border: none;
+          border-bottom: 0.5pt solid #555;
+          border-radius: 0;
+          padding: 0 0 2mm;
         }
         .field-row label {
           font-size: 0.68rem;
-          min-width: 7rem;
-        }
-        .field-line {
-          border-bottom: 0.5pt solid #555;
-          min-width: 0;
-          width: 100%;
-          padding-bottom: 6px;
-        }
-
-        .notes-label {
-          font-size: 0.65rem;
-          margin-bottom: 2px;
-        }
-        .notes-lines {
-          gap: 5mm;
-          margin-bottom: 0;
+          min-width: 6.5rem;
+          color: #333 !important;
         }
         .note-line {
-          border-bottom: 0.5pt solid #aaa;
+          border: none;
+          border-bottom: 0.5pt solid #999;
+          border-radius: 0;
+          padding: 0 0 2mm;
         }
-
-        .actions {
-          display: none;
-        }
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(-6px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
+        .notes-label {
+          font-size: 0.68rem;
+          color: #333 !important;
+          margin-top: 0;
         }
       }
     </style>
   </head>
   <body>
     <div class="page">
-      <div class="lang-switch">
-        <button class="lang-btn active" data-lang="en">EN</button>
-        <button class="lang-btn" data-lang="ru">RU</button>
+      <div class="topbar">
+        <div class="lang-switch">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="ru">RU</button>
+        </div>
       </div>
 
-      <header>
+      <header class="glass">
         <h1 id="t-title">Walk Bingo</h1>
         <div class="sub" id="t-sub">a scavenger hunt for your walk</div>
         <div class="theme-badge" id="themeBadge"></div>
         <div class="dateline" id="dateline"></div>
       </header>
 
-      <section class="theme-section" aria-label="Walk theme">
+      <section class="theme-section glass" aria-label="Walk theme">
         <div class="theme-head">
-          <strong id="t-theme-head">Theme</strong>
+          <strong class="eyebrow" id="t-theme-head">Theme</strong>
           <small id="t-theme-hint">What kind of walk is this?</small>
         </div>
         <div class="theme-tagline" id="themeTagline"></div>
         <div class="theme-grid" id="themeGrid"></div>
       </section>
 
-      <div class="rules">
-        <strong id="t-rules-head">How to play</strong>
+      <div class="rules glass">
+        <strong class="eyebrow" id="t-rules-head">How to play</strong>
         <span id="t-rules-body"
           >Find the items on your walk and tap (or tick) them off. Complete a
           full row or column — then you're free to head home. 🏡</span
         >
       </div>
 
-      <div class="grid-wrap">
-        <div class="grid" id="grid"></div>
-      </div>
+      <div class="grid" id="grid"></div>
 
       <div class="win-banner" id="winBanner">
         <p id="t-win-p">🌿 Bingo! You can head home.</p>
@@ -574,27 +829,25 @@
         >
       </div>
 
-      <div class="fields">
+      <div class="card-form glass">
         <div class="field-row">
-          <label id="t-label-name">Name</label>
-          <input class="field-line" type="text" maxlength="40" />
+          <label id="t-label-name" for="f-name">Name</label>
+          <input class="field-line" id="f-name" type="text" maxlength="40" />
         </div>
         <div class="field-row">
-          <label id="t-label-steps">Steps taken</label>
-          <input class="field-line" type="text" maxlength="20" />
+          <label id="t-label-steps" for="f-steps">Steps taken</label>
+          <input class="field-line" id="f-steps" type="text" maxlength="20" />
         </div>
-      </div>
 
-      <div class="notes-label" id="t-notes">Notes</div>
-      <div class="notes-lines">
+        <div class="notes-label" id="t-notes">Notes</div>
         <input class="note-line" type="text" />
         <input class="note-line" type="text" />
         <input class="note-line" type="text" />
       </div>
 
       <div class="actions">
-        <button class="primary" id="t-btn-new">New card</button>
-        <button id="t-btn-print">Print</button>
+        <button class="action primary" id="t-btn-new">New card</button>
+        <button class="action" id="t-btn-print">Print</button>
       </div>
     </div>
     <script src="items.js"></script>
@@ -602,4 +855,3 @@
     <script src="app.js"></script>
   </body>
 </html>
-

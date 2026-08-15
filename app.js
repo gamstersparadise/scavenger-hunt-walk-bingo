@@ -102,6 +102,7 @@ function applyLang() {
   document.title = t.title + " 🌿";
 
   const active = getTheme(theme);
+  document.documentElement.style.setProperty("--h", active.hue ?? 142);
   document.getElementById("themeBadge").textContent =
     `${active.emoji} ${active.name[lang]}`;
 
