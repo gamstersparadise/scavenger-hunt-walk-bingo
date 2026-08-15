@@ -6,7 +6,7 @@ const LANG = {
     sub: "a scavenger hunt for your walk",
     rulesHead: "How to play",
     rulesBody:
-      "Find the items on your walk and tap (or tick) them off. Complete a full row or column — then you're free to head home. 🏡",
+      "Find the items on your walk and tap a square to snap or pick a photo of it — no photo handy? Just dismiss the picker and the square ticks anyway. Tap a done square to clear it. Complete a full row or column — then you're free to head home. 🏡",
     winP: "🌿 Bingo! You can head home.",
     winSmall: "Fill in your steps below and keep as a souvenir.",
     labelName: "Name",
@@ -19,6 +19,8 @@ const LANG = {
     opinionLabel: "Imaginative prompts",
     opinionHint: "Off means only real, findable things",
     btnDone: "Done",
+    addPhoto: "Add a photo",
+    clearCell: "Clear this square",
     locale: "en-GB",
   },
   ru: {
@@ -26,7 +28,7 @@ const LANG = {
     sub: "игра-поиск для прогулки",
     rulesHead: "Как играть",
     rulesBody:
-      "Найди предметы на прогулке и отмечай их. Заполни целый ряд или столбец — и можно возвращаться домой. 🏡",
+      "Найди предметы на прогулке и нажми на клетку, чтобы сфотографировать находку или выбрать фото. Нет фото — просто закрой окно выбора, клетка отметится сама. Нажми на отмеченную клетку, чтобы очистить её. Заполни целый ряд или столбец — и можно возвращаться домой. 🏡",
     winP: "🌿 Бинго! Можно идти домой.",
     winSmall: "Запиши количество шагов ниже и сохрани на память.",
     labelName: "Имя",
@@ -39,6 +41,8 @@ const LANG = {
     opinionLabel: "Задания на воображение",
     opinionHint: "Выключено — только реальные находки",
     btnDone: "Готово",
+    addPhoto: "Добавить фото",
+    clearCell: "Очистить клетку",
     locale: "ru-RU",
   },
 };
@@ -48,6 +52,8 @@ let theme = DEFAULT_THEME;
 let opinionItems = false; // vibe-based prompts are opt-in
 let found = new Array(9).fill(false);
 let currentItems = [];
+// Snapshots live here as data URLs and nowhere else — no upload, no storage.
+let photos = new Array(9).fill(null);
 
 function shuffle(arr) {
   const a = [...arr];
@@ -176,10 +182,83 @@ document.getElementById("scrollHint").addEventListener("click", () => {
   document.getElementById("below").scrollIntoView({ behavior: "smooth" });
 });
 
+/* ── Photos: read, shrink and keep in memory only ───────────────── */
+const MAX_EDGE = 720; // plenty for a 1/3-of-a-board tile
+const photoInput = document.getElementById("photoInput");
+let photoTarget = null; // index awaiting a file
+let photoHandled = false; // a file actually came back
+
+async function loadBitmap(file) {
+  try {
+    return await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    // older engines: let an <img> decode it instead
+    const url = URL.createObjectURL(file);
+    try {
+      const img = new Image();
+      img.src = url;
+      await img.decode();
+      return img;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+}
+
+async function fileToDataUrl(file) {
+  const src = await loadBitmap(file);
+  const w = src.width || src.naturalWidth;
+  const h = src.height || src.naturalHeight;
+  const scale = Math.min(1, MAX_EDGE / Math.max(w, h));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(w * scale);
+  canvas.height = Math.round(h * scale);
+  canvas.getContext("2d").drawImage(src, 0, 0, canvas.width, canvas.height);
+  if (src.close) src.close();
+  return canvas.toDataURL("image/jpeg", 0.82);
+}
+
+photoInput.addEventListener("change", async () => {
+  const file = photoInput.files && photoInput.files[0];
+  const i = photoTarget;
+  photoInput.value = ""; // so picking the same file twice still fires
+  photoTarget = null;
+  if (!file || i === null) return;
+  photoHandled = true;
+
+  found[i] = true; // a photo is proof you found it
+  try {
+    photos[i] = await fileToDataUrl(file);
+  } catch {
+    /* unreadable file — the tick stands on its own */
+  }
+  render();
+});
+
+/* Browsers give no dependable "picker cancelled" signal, so when focus comes
+   back with no file in hand we read the tap as a plain tick. */
+function onPickerClosed() {
+  setTimeout(() => {
+    if (photoHandled || photoTarget === null) return;
+    const i = photoTarget;
+    photoTarget = null;
+    found[i] = true;
+    render();
+  }, 500);
+}
+
+function pickPhoto(i) {
+  photoTarget = i;
+  photoHandled = false;
+  window.addEventListener("focus", onPickerClosed, { once: true });
+  photoInput.click();
+}
+
 function render() {
   const grid = document.getElementById("grid");
   const banner = document.getElementById("winBanner");
   const win = checkWin();
+  const t = LANG[lang];
 
   grid.innerHTML = "";
   currentItems.forEach((item, i) => {
@@ -187,11 +266,33 @@ function render() {
     cell.className =
       "cell" +
       (found[i] ? " found" : "") +
+      (photos[i] ? " has-photo" : "") +
       (win && win.includes(i) ? " winner" : "");
-    cell.textContent = item;
+
+    if (photos[i]) {
+      const img = document.createElement("img");
+      img.className = "cell-photo";
+      img.src = photos[i];
+      img.alt = item;
+      cell.appendChild(img);
+    }
+
+    const label = document.createElement("span");
+    label.className = "cell-label";
+    label.textContent = item;
+    cell.appendChild(label);
+
+    cell.title = found[i] ? t.clearCell : t.addPhoto;
+
+    // Tapping an open tile asks for a picture; tapping a done one clears it.
     cell.onclick = () => {
-      found[i] = !found[i];
-      render();
+      if (found[i]) {
+        found[i] = false;
+        photos[i] = null;
+        render();
+      } else {
+        pickPhoto(i);
+      }
     };
     grid.appendChild(cell);
   });
@@ -206,6 +307,7 @@ function newCard() {
     .slice(0, 9)
     .map((item) => item[lang]);
   found = new Array(9).fill(false);
+  photos = new Array(9).fill(null);
   document
     .querySelectorAll(".field-line, .note-line")
     .forEach((el) => (el.value = ""));

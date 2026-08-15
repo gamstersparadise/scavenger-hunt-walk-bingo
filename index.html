@@ -381,6 +381,70 @@
         animation: pulse 1.6s var(--ease-out) infinite;
       }
 
+      /* ── Photo cells: the snapshot fills the tile, the label
+            rides on a glass band across the bottom half ───────────── */
+      .cell-label {
+        position: relative;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      .cell-photo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+        pointer-events: none;
+        animation: photo-in 0.42s var(--ease-out);
+      }
+
+      @keyframes photo-in {
+        from {
+          opacity: 0;
+          transform: scale(1.06);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .cell.has-photo {
+        align-items: flex-end;
+        justify-content: stretch;
+        padding: 0;
+        color: #fff;
+      }
+
+      /* keep the specular sweep, just softer over the picture */
+      .cell.has-photo::before {
+        background: linear-gradient(
+          150deg,
+          rgba(255, 255, 255, 0.3) 0%,
+          rgba(255, 255, 255, 0) 38%
+        );
+        z-index: 1;
+      }
+
+      /* no band — the label floats on the photo, kept legible by shadow alone */
+      .cell.has-photo .cell-label {
+        width: 100%;
+        padding: 0.42rem 0.5rem 0.55rem;
+        text-align: center;
+        font-weight: 600;
+        color: #fff;
+        text-shadow:
+          0 1px 2px rgba(0, 0, 0, 0.6),
+          0 2px 12px rgba(0, 0, 0, 0.5);
+      }
+
+      /* the ✓ badge needs to sit above the photo */
+      .cell.found::after {
+        z-index: 3;
+      }
+
       /* ── Action bar (stays on the first screen) ──────────────── */
       .actions {
         flex: 0 0 auto;
@@ -1100,6 +1164,23 @@
           display: none !important;
         }
 
+        /* photos still print — the label floats on them, shadow and all */
+        .cell.has-photo {
+          padding: 0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .cell.has-photo .cell-label {
+          color: #fff !important;
+          text-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.8),
+            0 2px 8px rgba(0, 0, 0, 0.6);
+          padding: 1.5mm 1mm 2mm;
+        }
+        .cell-photo {
+          animation: none !important;
+        }
+
         .below {
           padding-top: 4mm;
         }
@@ -1212,6 +1293,14 @@
         </dialog>
 
         <div class="theme-tagline" id="themeTagline"></div>
+
+        <!-- photos never leave the device: read locally, kept in memory only -->
+        <input
+          type="file"
+          id="photoInput"
+          accept="image/*"
+          hidden
+        />
 
         <div class="board">
           <div class="grid" id="grid"></div>
