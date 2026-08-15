@@ -330,18 +330,31 @@ const WalkBingoShare = (() => {
       cursor += 132 + 34;
     }
 
-    /* ── notes ───────────────────────────────────────────────── */
-    const notes = data.notes.filter(Boolean).slice(0, 3);
-    if (notes.length) {
+    /* ── notes: one free-text field, wrapped over at most 3 lines ─ */
+    if (data.notes && data.notes.trim()) {
       ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
       ctx.font = font(400, 30);
-      for (const note of notes) {
-        const lines = wrap(ctx, note, W - PAD * 2 - 34, 1);
-        ctx.fillStyle = `hsl(${h} 60% 45%)`;
-        ctx.fillText("·", PAD + 6, cursor + 16);
-        ctx.fillStyle = "rgba(28,28,30,0.78)";
-        ctx.fillText(lines[0], PAD + 34, cursor + 16);
-        cursor += 48;
+
+      const inset = 30; // room for the accent rule down the left
+      const lines = [];
+      for (const para of data.notes.split(/\n+/)) {
+        if (lines.length >= 3) break;
+        if (!para.trim()) continue;
+        lines.push(...wrap(ctx, para, W - PAD * 2 - inset, 3 - lines.length));
+      }
+
+      if (lines.length) {
+        const lh = 44;
+        const blockH = lines.length * lh;
+        ctx.fillStyle = `hsl(${h} 60% 50% / 0.55)`;
+        rr(ctx, PAD, cursor - 2, 5, blockH, 3);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(28,28,30,0.8)";
+        lines.forEach((line, i) => {
+          ctx.fillText(line, PAD + inset, cursor + lh * i + lh / 2 - 2);
+        });
       }
     }
 

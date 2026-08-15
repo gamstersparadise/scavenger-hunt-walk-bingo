@@ -650,7 +650,15 @@
         margin-top: 0.5rem;
       }
 
+      .notes-box {
+        display: contents;
+      }
+
       .note-line {
+        display: block;
+        min-height: 5.4rem;
+        line-height: 1.5;
+        resize: vertical;
         background: var(--glass-quiet);
         border: 0.5px solid rgba(255, 255, 255, 0.55);
         border-radius: var(--r-sm);
@@ -1261,11 +1269,38 @@
           min-width: 6.5rem;
           color: #333 !important;
         }
+        /* One field on screen, but on paper it still wants ruled lines —
+           drawn on the wrapper, since a textarea's own background does
+           not paint past its first rows when printing. */
+        .notes-box {
+          display: block;
+          height: 25mm;
+          /* Three rules at fixed offsets rather than a repeating gradient —
+             a repeat puts the last band flush against the box edge, where
+             the print rasteriser drops it. */
+          background-image:
+            linear-gradient(#555, #555), linear-gradient(#555, #555),
+            linear-gradient(#555, #555);
+          background-size: 100% 0.3mm;
+          background-position:
+            0 7.5mm,
+            0 15.5mm,
+            0 23.5mm;
+          background-repeat: no-repeat;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
         .note-line {
-          border: none;
-          border-bottom: 0.5pt solid #999;
+          border: none !important;
           border-radius: 0;
-          padding: 0 0 2mm;
+          padding: 0;
+          min-height: 0;
+          height: 100%;
+          resize: none;
+          overflow: hidden;
+          line-height: 8mm;
+          background: transparent !important;
         }
         .notes-label {
           font-size: 0.68rem;
@@ -1404,9 +1439,15 @@
           </div>
 
           <div class="notes-label" id="t-notes">Notes</div>
-          <input class="note-line" type="text" />
-          <input class="note-line" type="text" />
-          <input class="note-line" type="text" />
+          <!-- the wrapper only exists to carry the ruled lines in print -->
+          <div class="notes-box">
+            <textarea
+              class="note-line"
+              id="f-notes"
+              rows="3"
+              maxlength="240"
+            ></textarea>
+          </div>
         </div>
       </div>
     </div>

@@ -388,9 +388,7 @@ async function buildShareData() {
       { label: t.labelName, value: name },
       { label: t.labelSteps, value: steps },
     ],
-    notes: [...document.querySelectorAll(".note-line")].map((el) =>
-      el.value.trim(),
-    ),
+    notes: document.getElementById("f-notes").value.trim(),
     footer: `${t.title} · ${active.tagline[lang]}`,
     filename: `walk-bingo-${iso}.png`,
   };
