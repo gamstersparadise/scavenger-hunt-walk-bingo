@@ -16,6 +16,7 @@ const LANG = {
     btnPrint: "Print",
     themeHead: "Theme",
     themeHint: "What kind of walk is this?",
+    btnDone: "Done",
     locale: "en-GB",
   },
   ru: {
@@ -33,6 +34,7 @@ const LANG = {
     btnPrint: "Печать",
     themeHead: "Тема",
     themeHint: "Какое настроение у этой прогулки?",
+    btnDone: "Готово",
     locale: "ru-RU",
   },
 };
@@ -41,6 +43,7 @@ let lang = "en";
 let theme = DEFAULT_THEME;
 let found = new Array(9).fill(false);
 let currentItems = [];
+let wasWon = false;
 
 function shuffle(arr) {
   const a = [...arr];
@@ -76,7 +79,10 @@ function renderThemePicker() {
     btn.className = "theme-btn" + (entry.id === theme ? " active" : "");
     btn.title = entry.tagline[lang];
     btn.innerHTML = `<span class="theme-emoji">${entry.emoji}</span><span class="theme-name">${entry.name[lang]}</span>`;
-    btn.onclick = () => setTheme(entry.id);
+    btn.onclick = () => {
+      setTheme(entry.id);
+      sheet.close(); // show the new board straight away
+    };
     grid.appendChild(btn);
   }
 
@@ -97,6 +103,7 @@ function applyLang() {
   document.getElementById("t-notes").textContent = t.notes;
   document.getElementById("t-btn-new").textContent = t.btnNew;
   document.getElementById("t-btn-print").textContent = t.btnPrint;
+  document.getElementById("t-btn-done").textContent = t.btnDone;
   document.getElementById("t-theme-head").textContent = t.themeHead;
   document.getElementById("t-theme-hint").textContent = t.themeHint;
   document.title = t.title + " 🌿";
@@ -135,6 +142,34 @@ function setTheme(id) {
   newCard();
 }
 
+/* ── Sheet: theme picker + how to play ─────────────────────────── */
+const sheet = document.getElementById("sheet");
+
+function openSheet(sectionId) {
+  sheet.showModal();
+  const section = sectionId && document.getElementById(sectionId);
+  if (section) section.scrollIntoView({ block: "start", behavior: "instant" });
+}
+
+document
+  .getElementById("themeChip")
+  .addEventListener("click", () => openSheet("sec-theme"));
+document
+  .getElementById("infoBtn")
+  .addEventListener("click", () => openSheet("sec-rules"));
+document
+  .getElementById("t-btn-done")
+  .addEventListener("click", () => sheet.close());
+
+// tap the dimmed backdrop to dismiss
+sheet.addEventListener("click", (e) => {
+  if (e.target === sheet) sheet.close();
+});
+
+document.getElementById("scrollHint").addEventListener("click", () => {
+  document.getElementById("below").scrollIntoView({ behavior: "smooth" });
+});
+
 function render() {
   const grid = document.getElementById("grid");
   const banner = document.getElementById("winBanner");
@@ -155,8 +190,14 @@ function render() {
     grid.appendChild(cell);
   });
 
-  if (win) banner.classList.add("show");
-  else banner.classList.remove("show");
+  // The banner lives below the fold — bring it into view on the winning tap.
+  if (win) {
+    banner.classList.add("show");
+    if (!wasWon) banner.scrollIntoView({ behavior: "smooth", block: "center" });
+  } else {
+    banner.classList.remove("show");
+  }
+  wasWon = Boolean(win);
 }
 
 function newCard() {

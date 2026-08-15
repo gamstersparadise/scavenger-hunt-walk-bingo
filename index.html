@@ -2,13 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#f2f4f7" />
     <title>Walk Bingo 🌿</title>
     <style>
       /* ══════════════════════════════════════════════════════════
          Walk Bingo — light "liquid glass" system
+         Mobile-first: the board owns the first screen. Theme +
+         instructions live in a sheet; card details sit below.
          Everything is driven by --h (accent hue), set per theme.
          ══════════════════════════════════════════════════════════ */
 
@@ -35,7 +40,6 @@
         --glass-strong: rgba(255, 255, 255, 0.82);
         --glass-quiet: rgba(255, 255, 255, 0.42);
         --hairline: rgba(255, 255, 255, 0.75);
-        --edge: rgba(0, 0, 0, 0.06);
 
         --r-lg: 28px;
         --r-md: 20px;
@@ -53,6 +57,11 @@
         --font:
           -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
           "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+
+        /* Vertical chrome above+below the board on the first screen.
+           The board is sized as the largest square that fits what's left. */
+        --chrome: 200px;
+        --pad-x: 1rem;
       }
 
       * {
@@ -70,9 +79,6 @@
         font-family: var(--font);
         color: var(--ink);
         background: #eef0f4;
-        min-height: 100vh;
-        min-height: 100dvh;
-        padding: max(1.5rem, env(safe-area-inset-top)) 1.1rem 4rem;
         -webkit-font-smoothing: antialiased;
       }
 
@@ -111,9 +117,17 @@
       .page {
         max-width: 620px;
         margin: 0 auto;
+        padding: 0 var(--pad-x) calc(2.5rem + env(safe-area-inset-bottom));
+      }
+
+      /* ══ First screen: topbar + board + actions, no scrolling ══ */
+      .screen {
+        min-height: 100vh;
+        min-height: 100dvh;
         display: flex;
         flex-direction: column;
-        gap: 1.1rem;
+        gap: 0.7rem;
+        padding-top: max(0.7rem, env(safe-area-inset-top));
       }
 
       /* ── Glass primitive ─────────────────────────────────────── */
@@ -134,33 +148,125 @@
         color: var(--accent-deep);
       }
 
-      /* ── Top bar: segmented language control ─────────────────── */
+      /* ── Topbar ──────────────────────────────────────────────── */
       .topbar {
+        flex: 0 0 auto;
         display: flex;
-        justify-content: flex-end;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.4rem 0.5rem 0.4rem 0.9rem;
+        border-radius: var(--r-pill);
+      }
+
+      .brand {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: clamp(1rem, 4.6vw, 1.35rem);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background: linear-gradient(
+          135deg,
+          var(--accent-deep),
+          var(--accent-soft)
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .brand .sub {
+        display: none;
+      }
+
+      /* Theme chip doubles as the menu trigger */
+      .chip {
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        flex-shrink: 0;
+        max-width: 42vw;
+        padding: 0.34rem 0.6rem 0.34rem 0.55rem;
+        border-radius: var(--r-pill);
+        cursor: pointer;
+        color: var(--accent-deep);
+        background: hsl(var(--h) 80% 93% / 0.8);
+        border: 0.5px solid hsl(var(--h) 60% 70% / 0.45);
+        transition:
+          transform 0.3s var(--ease-spring),
+          background 0.25s var(--ease-out);
+      }
+
+      .chip:hover {
+        background: hsl(var(--h) 80% 96% / 0.95);
+      }
+      .chip:active {
+        transform: scale(0.95);
+      }
+
+      .chip #themeBadge {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .chip .caret {
+        font-size: 0.6rem;
+        opacity: 0.6;
+        flex-shrink: 0;
+      }
+
+      .icon-btn {
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        width: 2rem;
+        height: 2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        cursor: pointer;
+        color: var(--ink-2);
+        background: var(--glass-quiet);
+        border: 0.5px solid rgba(255, 255, 255, 0.6);
+        transition:
+          transform 0.3s var(--ease-spring),
+          background 0.25s var(--ease-out),
+          color 0.25s var(--ease-out);
+      }
+
+      .icon-btn:hover {
+        background: var(--glass-strong);
+        color: var(--ink);
+      }
+      .icon-btn:active {
+        transform: scale(0.92);
       }
 
       .lang-switch {
         display: inline-flex;
         gap: 2px;
-        padding: 3px;
+        flex-shrink: 0;
+        padding: 2px;
         border-radius: var(--r-pill);
         background: var(--glass-quiet);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        backdrop-filter: blur(20px) saturate(180%);
-        border: 0.5px solid var(--hairline);
-        box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.15);
+        border: 0.5px solid rgba(255, 255, 255, 0.6);
       }
 
       .lang-btn {
         font: inherit;
-        font-size: 0.76rem;
+        font-size: 0.7rem;
         font-weight: 600;
-        letter-spacing: 0.02em;
         border: none;
         background: transparent;
         color: var(--ink-2);
-        padding: 0.34rem 0.85rem;
+        padding: 0.28rem 0.55rem;
         border-radius: var(--r-pill);
         cursor: pointer;
         transition:
@@ -174,180 +280,32 @@
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
       }
 
-      .lang-btn:hover:not(.active) {
-        color: var(--ink);
-      }
-
-      /* ── Header ──────────────────────────────────────────────── */
-      header {
-        text-align: center;
-        padding: 1.6rem 1.2rem 1.8rem;
-      }
-
-      header h1 {
-        font-size: clamp(2.3rem, 9vw, 3.1rem);
-        font-weight: 700;
-        letter-spacing: -0.035em;
-        line-height: 1.02;
-        background: linear-gradient(
-          135deg,
-          var(--accent-deep),
-          var(--accent-soft)
-        );
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-      }
-
-      header .sub {
-        font-size: 0.95rem;
-        color: var(--ink-2);
-        margin-top: 0.45rem;
-        letter-spacing: -0.01em;
-      }
-
-      .theme-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        margin-top: 1rem;
-        padding: 0.32rem 0.85rem;
-        font-size: 0.78rem;
-        font-weight: 600;
-        border-radius: var(--r-pill);
-        color: var(--accent-deep);
-        background: hsl(var(--h) 80% 92% / 0.75);
-        border: 0.5px solid hsl(var(--h) 60% 70% / 0.4);
-      }
-
-      header .dateline {
-        font-size: 0.74rem;
-        color: var(--ink-3);
-        margin-top: 0.7rem;
-        letter-spacing: 0.01em;
-      }
-
-      /* ── Theme picker ────────────────────────────────────────── */
-      .theme-section {
-        padding: 1.15rem 1.2rem 1.3rem;
-      }
-
-      .theme-head {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 1rem;
-      }
-
-      .theme-head small {
-        font-size: 0.76rem;
-        color: var(--ink-3);
-      }
-
-      .theme-tagline {
-        font-size: 0.88rem;
-        color: var(--ink-2);
-        margin: 0.35rem 0 0.9rem;
-        min-height: 1.2em;
-      }
-
-      .theme-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(6.6rem, 1fr));
-        gap: 0.5rem;
-      }
-
-      .theme-btn {
-        font: inherit;
-        font-size: 0.72rem;
-        font-weight: 500;
-        color: var(--ink-2);
-        background: var(--glass-quiet);
-        border: 0.5px solid rgba(255, 255, 255, 0.6);
-        border-radius: var(--r-sm);
-        padding: 0.6rem 0.35rem;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.3rem;
-        line-height: 1.2;
-        transition:
-          transform 0.3s var(--ease-spring),
-          background 0.25s var(--ease-out),
-          color 0.25s var(--ease-out),
-          box-shadow 0.25s var(--ease-out);
-      }
-
-      .theme-btn .theme-emoji {
-        font-size: 1.25rem;
-        line-height: 1;
-        transition: transform 0.35s var(--ease-spring);
-      }
-
-      .theme-btn .theme-name {
-        text-align: center;
-      }
-
-      .theme-btn:hover:not(.active) {
-        background: var(--glass-strong);
-        color: var(--ink);
-        transform: translateY(-2px);
-      }
-
-      .theme-btn:active {
-        transform: scale(0.95);
-      }
-
-      .theme-btn.active {
-        color: #fff;
-        font-weight: 600;
-        background: linear-gradient(
-          145deg,
-          var(--accent-soft),
-          var(--accent-deep)
-        );
-        border-color: transparent;
-        box-shadow:
-          0 6px 18px -6px hsl(var(--h) 60% 40% / 0.55),
-          inset 0 1px 0 rgba(255, 255, 255, 0.35);
-      }
-
-      .theme-btn.active .theme-emoji {
-        transform: scale(1.12);
-      }
-
-      /* ── Rules ───────────────────────────────────────────────── */
-      .rules {
-        padding: 1rem 1.2rem 1.1rem;
-        font-size: 0.9rem;
-        line-height: 1.55;
-        color: var(--ink-2);
-        border-radius: var(--r-md);
-      }
-
-      .rules strong {
-        display: block;
-        margin-bottom: 0.3rem;
-      }
-
-      /* ── Grid ────────────────────────────────────────────────── */
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.55rem;
-      }
-
-      .cell {
-        aspect-ratio: 1 / 1;
+      /* ── Board: the largest square that fits the free space ──── */
+      .board {
+        flex: 1 1 auto;
+        min-height: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 0.7rem 0.5rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        aspect-ratio: 1;
+        width: min(100%, calc(100dvh - var(--chrome)));
+      }
+
+      .cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.55rem 0.4rem;
         text-align: center;
-        font-size: clamp(0.7rem, 2.6vw, 0.85rem);
+        font-size: clamp(0.68rem, 2.15vmin + 0.34rem, 0.88rem);
         font-weight: 500;
-        line-height: 1.3;
+        line-height: 1.28;
         letter-spacing: -0.01em;
         color: var(--ink);
         cursor: pointer;
@@ -359,8 +317,7 @@
         -webkit-backdrop-filter: blur(24px) saturate(180%);
         backdrop-filter: blur(24px) saturate(180%);
         border: 0.5px solid var(--hairline);
-        box-shadow:
-          0 4px 14px -6px rgba(0, 0, 0, 0.16), var(--shadow-inset);
+        box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.16), var(--shadow-inset);
         transition:
           transform 0.32s var(--ease-spring),
           background 0.3s var(--ease-out),
@@ -384,8 +341,7 @@
       .cell:hover {
         transform: translateY(-3px);
         background: var(--glass-strong);
-        box-shadow:
-          0 10px 26px -8px rgba(0, 0, 0, 0.22), var(--shadow-inset);
+        box-shadow: 0 10px 26px -8px rgba(0, 0, 0, 0.22), var(--shadow-inset);
       }
 
       .cell:active {
@@ -410,9 +366,9 @@
       .cell.found::after {
         content: "✓";
         position: absolute;
-        top: 7px;
-        right: 9px;
-        font-size: 0.72rem;
+        top: 6px;
+        right: 8px;
+        font-size: 0.7rem;
         font-weight: 700;
         opacity: 0.75;
       }
@@ -425,16 +381,87 @@
         animation: pulse 1.6s var(--ease-out) infinite;
       }
 
-      /* ── Win banner ──────────────────────────────────────────── */
+      /* ── Action bar (stays on the first screen) ──────────────── */
+      .actions {
+        flex: 0 0 auto;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+      }
+
+      button.action {
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        padding: 0.66rem 1.35rem;
+        border-radius: var(--r-pill);
+        cursor: pointer;
+        color: var(--ink);
+        background: var(--glass);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        backdrop-filter: blur(24px) saturate(180%);
+        border: 0.5px solid var(--hairline);
+        box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.22), var(--shadow-inset);
+        transition:
+          transform 0.3s var(--ease-spring),
+          background 0.25s var(--ease-out);
+      }
+
+      button.action:hover {
+        transform: translateY(-2px);
+        background: var(--glass-strong);
+      }
+      button.action:active {
+        transform: scale(0.96);
+      }
+
+      button.action.primary {
+        color: #fff;
+        background: linear-gradient(
+          145deg,
+          var(--accent-soft),
+          var(--accent-deep)
+        );
+        border-color: transparent;
+        box-shadow:
+          0 8px 22px -6px hsl(var(--h) 60% 40% / 0.6),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      }
+
+      /* "there's more below" affordance */
+      .scroll-hint {
+        flex: 0 0 auto;
+        display: block;
+        margin: 0 auto;
+        padding: 0.15rem 0.6rem 0.5rem;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--ink-3);
+        background: none;
+        border: none;
+        cursor: pointer;
+        animation: nudge 2.2s var(--ease-out) 3;
+      }
+
+      /* ── Below the fold: win banner + card details ───────────── */
+      .below {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        padding-top: 1.4rem;
+      }
+
       .win-banner {
         display: none;
         text-align: center;
-        padding: 1.15rem 1.2rem;
+        padding: 1.1rem 1.2rem;
         border-radius: var(--r-md);
         background: linear-gradient(
           145deg,
-          hsl(var(--h) 90% 95% / 0.8),
-          hsl(var(--h) 80% 88% / 0.6)
+          hsl(var(--h) 90% 95% / 0.85),
+          hsl(var(--h) 80% 88% / 0.65)
         );
         border: 0.5px solid hsl(var(--h) 60% 75% / 0.5);
       }
@@ -445,7 +472,7 @@
       }
 
       .win-banner p {
-        font-size: 1.2rem;
+        font-size: 1.15rem;
         font-weight: 700;
         letter-spacing: -0.02em;
         color: var(--accent-deep);
@@ -458,7 +485,6 @@
         color: var(--ink-2);
       }
 
-      /* ── Fields & notes ──────────────────────────────────────── */
       .card-form {
         padding: 1.1rem 1.2rem 1.3rem;
         display: flex;
@@ -466,10 +492,16 @@
         gap: 0.55rem;
       }
 
+      .dateline {
+        font-size: 0.74rem;
+        color: var(--ink-3);
+        margin-bottom: 0.15rem;
+      }
+
       .field-row {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.6rem;
         background: var(--glass-quiet);
         border: 0.5px solid rgba(255, 255, 255, 0.55);
         border-radius: var(--r-sm);
@@ -479,13 +511,14 @@
           box-shadow 0.2s var(--ease-out);
       }
 
-      .field-row:focus-within {
+      .field-row:focus-within,
+      .note-line:focus {
         border-color: hsl(var(--h) 65% 60% / 0.6);
         box-shadow: 0 0 0 3px hsl(var(--h) 70% 60% / 0.18);
       }
 
       .field-row label {
-        min-width: 7.5rem;
+        min-width: 7rem;
         font-size: 0.76rem;
         font-weight: 600;
         color: var(--ink-2);
@@ -495,7 +528,7 @@
       .field-line,
       .note-line {
         font: inherit;
-        font-size: 0.9rem;
+        font-size: 16px; /* keeps iOS from zooming on focus */
         color: var(--ink);
         border: none;
         background: transparent;
@@ -526,52 +559,134 @@
           box-shadow 0.2s var(--ease-out);
       }
 
-      .note-line:focus {
-        border-color: hsl(var(--h) 65% 60% / 0.6);
-        box-shadow: 0 0 0 3px hsl(var(--h) 70% 60% / 0.18);
-      }
-
-      /* ── Actions ─────────────────────────────────────────────── */
-      .actions {
-        display: flex;
-        gap: 0.6rem;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 0.4rem;
-      }
-
-      button.action {
-        font: inherit;
-        font-size: 0.88rem;
-        font-weight: 600;
-        letter-spacing: -0.01em;
-        padding: 0.72rem 1.6rem;
-        border-radius: var(--r-pill);
-        cursor: pointer;
+      /* ══ Sheet: theme picker + how to play ══════════════════════ */
+      .sheet {
+        border: none;
+        padding: 0;
+        background: transparent;
         color: var(--ink);
-        background: var(--glass);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
-        backdrop-filter: blur(24px) saturate(180%);
-        border: 0.5px solid var(--hairline);
-        box-shadow:
-          0 6px 18px -8px rgba(0, 0, 0, 0.22), var(--shadow-inset);
+        max-width: 100%;
+        max-height: 100%;
+      }
+
+      .sheet::backdrop {
+        background: rgba(30, 32, 40, 0.28);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+      }
+
+      /* mobile: bottom sheet */
+      .sheet {
+        width: 100%;
+        margin: auto auto 0;
+      }
+
+      .sheet-panel {
+        width: 100%;
+        max-height: 88dvh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0.6rem 1.15rem calc(1.4rem + env(safe-area-inset-bottom));
+        border-radius: var(--r-lg) var(--r-lg) 0 0;
+        background: rgba(255, 255, 255, 0.78);
+        -webkit-backdrop-filter: blur(34px) saturate(190%);
+        backdrop-filter: blur(34px) saturate(190%);
+        border-top: 0.5px solid var(--hairline);
+        box-shadow: 0 -12px 48px -12px rgba(0, 0, 0, 0.28);
+      }
+
+      .sheet[open] .sheet-panel {
+        animation: sheet-up 0.4s var(--ease-out);
+      }
+
+      .grabber {
+        width: 38px;
+        height: 5px;
+        margin: 0 auto 0.9rem;
+        border-radius: var(--r-pill);
+        background: rgba(60, 60, 67, 0.25);
+      }
+
+      .sheet-section + .sheet-section {
+        margin-top: 1.5rem;
+      }
+
+      .sheet-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .sheet-head small {
+        font-size: 0.76rem;
+        color: var(--ink-3);
+      }
+
+      /* Sits above the board — the one line of context you need mid-walk. */
+      .theme-tagline {
+        flex: 0 0 auto;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--ink-2);
+        min-height: 1.2em;
+        margin-top: 0.15rem;
+      }
+
+      .sheet-head + .theme-grid {
+        margin-top: 0.85rem;
+      }
+
+      .theme-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(6.2rem, 1fr));
+        gap: 0.5rem;
+      }
+
+      .theme-btn {
+        font: inherit;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--ink-2);
+        background: rgba(255, 255, 255, 0.55);
+        border: 0.5px solid rgba(255, 255, 255, 0.7);
+        border-radius: var(--r-sm);
+        padding: 0.65rem 0.35rem;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+        line-height: 1.2;
         transition:
           transform 0.3s var(--ease-spring),
-          box-shadow 0.25s var(--ease-out),
-          background 0.25s var(--ease-out);
+          background 0.25s var(--ease-out),
+          color 0.25s var(--ease-out),
+          box-shadow 0.25s var(--ease-out);
       }
 
-      button.action:hover {
+      .theme-btn .theme-emoji {
+        font-size: 1.3rem;
+        line-height: 1;
+        transition: transform 0.35s var(--ease-spring);
+      }
+
+      .theme-btn .theme-name {
+        text-align: center;
+      }
+
+      .theme-btn:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--ink);
         transform: translateY(-2px);
-        background: var(--glass-strong);
+      }
+      .theme-btn:active {
+        transform: scale(0.95);
       }
 
-      button.action:active {
-        transform: scale(0.96);
-      }
-
-      button.action.primary {
+      .theme-btn.active {
         color: #fff;
+        font-weight: 600;
         background: linear-gradient(
           145deg,
           var(--accent-soft),
@@ -579,8 +694,111 @@
         );
         border-color: transparent;
         box-shadow:
-          0 8px 22px -6px hsl(var(--h) 60% 40% / 0.6),
-          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          0 6px 18px -6px hsl(var(--h) 60% 40% / 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      }
+
+      .theme-btn.active .theme-emoji {
+        transform: scale(1.12);
+      }
+
+      .rules {
+        margin-top: 0.4rem;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        color: var(--ink-2);
+      }
+
+      .sheet-done {
+        width: 100%;
+        margin-top: 1.5rem;
+        font: inherit;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        padding: 0.8rem;
+        border: none;
+        border-radius: var(--r-pill);
+        cursor: pointer;
+        background: linear-gradient(
+          145deg,
+          var(--accent-soft),
+          var(--accent-deep)
+        );
+        box-shadow: 0 8px 22px -6px hsl(var(--h) 60% 40% / 0.55);
+        transition: transform 0.3s var(--ease-spring);
+      }
+      .sheet-done:active {
+        transform: scale(0.97);
+      }
+
+      /* ══ Larger screens: roomier, sheet becomes a centred modal ══ */
+      @media (min-width: 700px) {
+        :root {
+          --chrome: 240px;
+          --pad-x: 1.5rem;
+        }
+
+        .topbar {
+          padding: 0.5rem 0.6rem 0.5rem 1.2rem;
+        }
+
+        .brand {
+          font-size: 1.5rem;
+        }
+
+        .brand .sub {
+          display: inline;
+          font-size: 0.85rem;
+          font-weight: 400;
+          letter-spacing: -0.01em;
+          color: var(--ink-3);
+          -webkit-text-fill-color: var(--ink-3);
+          margin-left: 0.6rem;
+        }
+
+        .chip {
+          max-width: none;
+          font-size: 0.82rem;
+        }
+
+        .grid {
+          gap: 0.6rem;
+        }
+
+        .sheet {
+          margin: auto;
+          width: min(560px, 92vw);
+        }
+
+        .sheet-panel {
+          border-radius: var(--r-lg);
+          border: 0.5px solid var(--hairline);
+          padding: 0.9rem 1.5rem 1.5rem;
+          max-height: 86dvh;
+          box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.35);
+        }
+
+        .sheet[open] .sheet-panel {
+          animation: rise 0.35s var(--ease-spring);
+        }
+
+        .grabber {
+          display: none;
+        }
+      }
+
+      /* Landscape phones: board would be squeezed — let the page scroll */
+      @media (max-height: 520px) {
+        .screen {
+          min-height: 0;
+        }
+        .grid {
+          width: min(100%, 62vh);
+        }
+        .scroll-hint {
+          display: none;
+        }
       }
 
       /* ── Motion ──────────────────────────────────────────────── */
@@ -607,6 +825,15 @@
         }
       }
 
+      @keyframes sheet-up {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: none;
+        }
+      }
+
       @keyframes pulse {
         0%,
         100% {
@@ -614,6 +841,18 @@
         }
         50% {
           filter: brightness(1.08);
+        }
+      }
+
+      @keyframes nudge {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.7;
+        }
+        50% {
+          transform: translateY(3px);
+          opacity: 1;
         }
       }
 
@@ -632,12 +871,12 @@
         .glass,
         .cell,
         button.action,
-        .lang-switch {
-          background: rgba(255, 255, 255, 0.9);
+        .sheet-panel {
+          background: rgba(255, 255, 255, 0.92);
         }
       }
 
-      /* ── Print: strip the glass, keep a clean paper card ─────── */
+      /* ══ Print: strip the glass, keep a clean paper card ════════ */
       @media print {
         @page {
           size: A4 portrait;
@@ -651,7 +890,6 @@
 
         body {
           background: #fff;
-          padding: 0;
           font-size: 10.5pt;
           color: #000;
         }
@@ -662,15 +900,22 @@
 
         .page {
           max-width: 100%;
-          height: 100%;
-          gap: 5mm;
+          padding: 0;
+        }
+
+        .screen {
+          min-height: 0;
+          padding-top: 0;
+          gap: 4mm;
         }
 
         .glass,
         .cell,
         .win-banner,
         .field-row,
-        .note-line {
+        .note-line,
+        .sheet-panel,
+        .chip {
           background: #fff !important;
           backdrop-filter: none !important;
           -webkit-backdrop-filter: none !important;
@@ -679,71 +924,89 @@
           animation: none !important;
         }
 
-        .topbar,
-        .theme-grid,
-        .theme-head small,
+        .lang-switch,
+        .icon-btn,
         .actions,
-        .win-banner {
+        .scroll-hint,
+        .win-banner,
+        .sheet-done,
+        .grabber,
+        .chip .caret,
+        /* the chosen theme already prints as the chip + tagline */
+        #sec-theme {
           display: none !important;
         }
 
-        header {
-          padding: 0 0 2mm;
+        .topbar {
+          border: none;
+          padding: 0;
+          border-radius: 0;
         }
-        header h1 {
-          font-size: 1.9rem;
+
+        .brand {
+          font-size: 1.6rem;
           -webkit-text-fill-color: #000;
           color: #000;
           background: none;
         }
-        header .sub {
-          font-size: 0.8rem;
+        .brand .sub {
+          display: inline;
           color: #444;
-        }
-        header .dateline {
-          font-size: 0.66rem;
-          margin-top: 2mm;
-          color: #555;
-        }
-        .theme-badge {
-          background: none;
-          border: 0.5pt solid #888;
-          color: #000;
-          margin-top: 2mm;
+          -webkit-text-fill-color: #444;
+          font-size: 0.78rem;
         }
 
-        .theme-section {
+        .chip {
+          border: 0.5pt solid #888 !important;
+          padding: 1mm 2mm;
+        }
+
+        /* The sheet holds the theme + rules copy — print it inline. */
+        .sheet {
+          display: block !important;
+          position: static;
+          width: 100%;
+          max-width: 100%;
+          max-height: none;
+        }
+        .sheet-panel {
+          max-height: none;
+          overflow: visible;
           padding: 0;
-          border: none;
+          border: none !important;
+        }
+        .sheet-section + .sheet-section {
+          margin-top: 2mm;
         }
         .theme-tagline {
           margin: 0;
           color: #444;
           font-size: 0.78rem;
         }
+        .rules {
+          margin-top: 1mm;
+          font-size: 0.74rem;
+          line-height: 1.45;
+          color: #333;
+        }
         .eyebrow {
           color: #000;
         }
 
-        .rules {
-          padding: 2mm 0;
-          font-size: 0.74rem;
-          line-height: 1.45;
-          border: none;
-          color: #333;
+        .board {
+          display: block;
         }
-
         .grid {
           width: 148mm;
           height: 148mm;
           margin: 0 auto;
           gap: 0;
+          aspect-ratio: auto;
           border-top: 1pt solid #000;
           border-left: 1pt solid #000;
         }
 
         .cell {
-          aspect-ratio: unset;
           font-size: 0.72rem;
           font-weight: 400;
           padding: 3mm 2mm;
@@ -757,10 +1020,17 @@
           display: none !important;
         }
 
+        .below {
+          padding-top: 4mm;
+        }
         .card-form {
           padding: 0;
           gap: 4mm;
           border: none;
+        }
+        .dateline {
+          color: #555 !important;
+          font-size: 0.68rem;
         }
         .field-row {
           border: none;
@@ -789,67 +1059,112 @@
   </head>
   <body>
     <div class="page">
-      <div class="topbar">
-        <div class="lang-switch">
-          <button class="lang-btn active" data-lang="en">EN</button>
-          <button class="lang-btn" data-lang="ru">RU</button>
-        </div>
-      </div>
+      <!-- ── First screen ─────────────────────────────────────── -->
+      <div class="screen">
+        <div class="topbar glass">
+          <h1 class="brand">
+            <span id="t-title">Walk Bingo</span>
+            <span class="sub" id="t-sub">a scavenger hunt for your walk</span>
+          </h1>
 
-      <header class="glass">
-        <h1 id="t-title">Walk Bingo</h1>
-        <div class="sub" id="t-sub">a scavenger hunt for your walk</div>
-        <div class="theme-badge" id="themeBadge"></div>
-        <div class="dateline" id="dateline"></div>
-      </header>
+          <button class="chip" id="themeChip" aria-haspopup="dialog">
+            <span id="themeBadge"></span>
+            <span class="caret" aria-hidden="true">▾</span>
+          </button>
 
-      <section class="theme-section glass" aria-label="Walk theme">
-        <div class="theme-head">
-          <strong class="eyebrow" id="t-theme-head">Theme</strong>
-          <small id="t-theme-hint">What kind of walk is this?</small>
+          <button
+            class="icon-btn"
+            id="infoBtn"
+            aria-haspopup="dialog"
+            aria-label="How to play"
+          >
+            ?
+          </button>
+
+          <div class="lang-switch">
+            <button class="lang-btn active" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="ru">RU</button>
+          </div>
         </div>
+
+        <!-- ── Sheet: theme + how to play ─────────────────────
+             Lives here (not at the end of <body>) so that in print,
+             where it flattens into the flow, the rules land under
+             the header rather than after the write-in fields. -->
+        <dialog class="sheet" id="sheet" aria-label="Walk settings">
+          <div class="sheet-panel">
+            <div class="grabber" aria-hidden="true"></div>
+
+            <section class="sheet-section" id="sec-theme">
+              <div class="sheet-head">
+                <strong class="eyebrow" id="t-theme-head">Theme</strong>
+                <small id="t-theme-hint">What kind of walk is this?</small>
+              </div>
+              <div class="theme-grid" id="themeGrid"></div>
+            </section>
+
+            <section class="sheet-section" id="sec-rules">
+              <strong class="eyebrow" id="t-rules-head">How to play</strong>
+              <p class="rules" id="t-rules-body">
+                Find the items on your walk and tap (or tick) them off.
+                Complete a full row or column — then you're free to head home.
+                🏡
+              </p>
+            </section>
+
+            <button class="sheet-done" id="t-btn-done">Done</button>
+          </div>
+        </dialog>
+
         <div class="theme-tagline" id="themeTagline"></div>
-        <div class="theme-grid" id="themeGrid"></div>
-      </section>
 
-      <div class="rules glass">
-        <strong class="eyebrow" id="t-rules-head">How to play</strong>
-        <span id="t-rules-body"
-          >Find the items on your walk and tap (or tick) them off. Complete a
-          full row or column — then you're free to head home. 🏡</span
-        >
-      </div>
-
-      <div class="grid" id="grid"></div>
-
-      <div class="win-banner" id="winBanner">
-        <p id="t-win-p">🌿 Bingo! You can head home.</p>
-        <small id="t-win-small"
-          >Fill in your steps below and keep as a souvenir.</small
-        >
-      </div>
-
-      <div class="card-form glass">
-        <div class="field-row">
-          <label id="t-label-name" for="f-name">Name</label>
-          <input class="field-line" id="f-name" type="text" maxlength="40" />
-        </div>
-        <div class="field-row">
-          <label id="t-label-steps" for="f-steps">Steps taken</label>
-          <input class="field-line" id="f-steps" type="text" maxlength="20" />
+        <div class="board">
+          <div class="grid" id="grid"></div>
         </div>
 
-        <div class="notes-label" id="t-notes">Notes</div>
-        <input class="note-line" type="text" />
-        <input class="note-line" type="text" />
-        <input class="note-line" type="text" />
+        <div class="actions">
+          <button class="action primary" id="t-btn-new">New card</button>
+          <button class="action" id="t-btn-print">Print</button>
+        </div>
+
+        <button class="scroll-hint" id="scrollHint">↓</button>
       </div>
 
-      <div class="actions">
-        <button class="action primary" id="t-btn-new">New card</button>
-        <button class="action" id="t-btn-print">Print</button>
+      <!-- ── Below the fold ───────────────────────────────────── -->
+      <div class="below" id="below">
+        <div class="win-banner" id="winBanner">
+          <p id="t-win-p">🌿 Bingo! You can head home.</p>
+          <small id="t-win-small"
+            >Fill in your steps below and keep as a souvenir.</small
+          >
+        </div>
+
+        <div class="card-form glass">
+          <div class="dateline" id="dateline"></div>
+
+          <div class="field-row">
+            <label id="t-label-name" for="f-name">Name</label>
+            <input class="field-line" id="f-name" type="text" maxlength="40" />
+          </div>
+          <div class="field-row">
+            <label id="t-label-steps" for="f-steps">Steps taken</label>
+            <input
+              class="field-line"
+              id="f-steps"
+              type="text"
+              inputmode="numeric"
+              maxlength="20"
+            />
+          </div>
+
+          <div class="notes-label" id="t-notes">Notes</div>
+          <input class="note-line" type="text" />
+          <input class="note-line" type="text" />
+          <input class="note-line" type="text" />
+        </div>
       </div>
     </div>
+
     <script src="items.js"></script>
     <script src="themes.js"></script>
     <script src="app.js"></script>
