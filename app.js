@@ -7,13 +7,20 @@ const LANG = {
     rulesHead: "How to play",
     rulesBody:
       "Find the items on your walk and tap a square to snap or pick a photo of it — no photo handy? Just dismiss the picker and the square ticks anyway. Tap a done square to clear it. Complete a full row or column — then you're free to head home. 🏡",
+    rulesPrint:
+      "Tick a square each time you spot one of these on your walk. Complete a full row or column — then you're free to head home. 🏡",
     winP: "🌿 Bingo! You can head home.",
-    winSmall: "Fill in your steps below and keep as a souvenir.",
+    winSmall:
+      "Fill in your steps below, then tap Share for a picture of your walk.",
     labelName: "Name",
     labelSteps: "Steps taken",
     notes: "Notes",
     btnNew: "New card",
-    btnPrint: "Print",
+    btnPrint: "Printable",
+    btnExport: "Share",
+    btnExportBusy: "Making…",
+    scoreline: (n) => `${n} of 9 found`,
+    walkOf: (name) => `${name}'s walk`,
     themeHead: "Theme",
     themeHint: "What kind of walk is this?",
     opinionLabel: "Imaginative prompts",
@@ -29,13 +36,20 @@ const LANG = {
     rulesHead: "Как играть",
     rulesBody:
       "Найди предметы на прогулке и нажми на клетку, чтобы сфотографировать находку или выбрать фото. Нет фото — просто закрой окно выбора, клетка отметится сама. Нажми на отмеченную клетку, чтобы очистить её. Заполни целый ряд или столбец — и можно возвращаться домой. 🏡",
+    rulesPrint:
+      "Отмечай клетку каждый раз, когда находишь что-то из списка. Заполни целый ряд или столбец — и можно возвращаться домой. 🏡",
     winP: "🌿 Бинго! Можно идти домой.",
-    winSmall: "Запиши количество шагов ниже и сохрани на память.",
+    winSmall:
+      "Запиши шаги ниже и нажми «Поделиться» — получится картинка о прогулке.",
     labelName: "Имя",
     labelSteps: "Шагов пройдено",
     notes: "Заметки",
     btnNew: "Новая карточка",
-    btnPrint: "Печать",
+    btnPrint: "Распечатать",
+    btnExport: "Поделиться",
+    btnExportBusy: "Готовим…",
+    scoreline: (n) => `Найдено ${n} из 9`,
+    walkOf: (name) => `Прогулка: ${name}`,
     themeHead: "Тема",
     themeHint: "Какое настроение у этой прогулки?",
     opinionLabel: "Задания на воображение",
@@ -106,6 +120,7 @@ function applyLang() {
   document.getElementById("t-sub").textContent = t.sub;
   document.getElementById("t-rules-head").textContent = t.rulesHead;
   document.getElementById("t-rules-body").innerHTML = t.rulesBody;
+  document.getElementById("t-rules-print").textContent = t.rulesPrint;
   document.getElementById("t-win-p").textContent = t.winP;
   document.getElementById("t-win-small").textContent = t.winSmall;
   document.getElementById("t-label-name").textContent = t.labelName;
@@ -113,6 +128,7 @@ function applyLang() {
   document.getElementById("t-notes").textContent = t.notes;
   document.getElementById("t-btn-new").textContent = t.btnNew;
   document.getElementById("t-btn-print").textContent = t.btnPrint;
+  document.getElementById("t-btn-export").textContent = t.btnExport;
   document.getElementById("t-btn-done").textContent = t.btnDone;
   document.getElementById("t-theme-head").textContent = t.themeHead;
   document.getElementById("t-theme-hint").textContent = t.themeHint;
@@ -299,6 +315,10 @@ function render() {
 
   // The banner sits right under the grid, so no scrolling is needed.
   banner.classList.toggle("show", Boolean(win));
+
+  // A won card is worth sharing — and "New card" stops being the main move.
+  document.getElementById("t-btn-export").hidden = !win;
+  document.getElementById("t-btn-new").classList.toggle("primary", !win);
 }
 
 function newCard() {
@@ -326,9 +346,68 @@ opinionToggle.addEventListener("change", () => {
 });
 
 document.getElementById("t-btn-new").addEventListener("click", newCard);
+
+/* ── Printable: the plain paper card, blank and fillable ───────────
+   The print stylesheet drops the photos and the ticks on its own, so
+   this is simply the browser's print dialog. */
 document.getElementById("t-btn-print").addEventListener("click", () =>
   window.print(),
 );
+
+/* ── Share: the finished walk baked into one story-sized picture ─── */
+async function buildShareData() {
+  const t = LANG[lang];
+  const active = getTheme(theme);
+  const name = document.getElementById("f-name").value.trim();
+  const steps = document.getElementById("f-steps").value.trim();
+
+  // Photos are data URLs already, so decoding them is instant and offline.
+  const images = await Promise.all(
+    photos.map((src) => (src ? WalkBingoShare.loadImage(src) : null)),
+  );
+
+  const iso = new Date().toISOString().slice(0, 10);
+
+  return {
+    hue: active.hue ?? 142,
+    brand: t.title,
+    title: `${active.emoji} ${name ? t.walkOf(name) : active.name[lang]}`,
+    date: new Date().toLocaleDateString(t.locale, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }),
+    tiles: currentItems.map((label, i) => ({
+      label,
+      found: found[i],
+      photo: images[i],
+    })),
+    scoreline: t.scoreline(found.filter(Boolean).length),
+    stats: [
+      { label: t.labelName, value: name },
+      { label: t.labelSteps, value: steps },
+    ],
+    notes: [...document.querySelectorAll(".note-line")].map((el) =>
+      el.value.trim(),
+    ),
+    footer: `${t.title} · ${active.tagline[lang]}`,
+    filename: `walk-bingo-${iso}.png`,
+  };
+}
+
+const exportBtn = document.getElementById("t-btn-export");
+exportBtn.addEventListener("click", async () => {
+  const t = LANG[lang];
+  exportBtn.disabled = true;
+  exportBtn.textContent = t.btnExportBusy;
+  try {
+    await WalkBingoShare.shareCard(await buildShareData());
+  } finally {
+    exportBtn.disabled = false;
+    exportBtn.textContent = t.btnExport;
+  }
+});
 
 applyLang();
 newCard();

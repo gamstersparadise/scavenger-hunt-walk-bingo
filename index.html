@@ -494,6 +494,35 @@
           inset 0 1px 0 rgba(255, 255, 255, 0.3);
       }
 
+      /* The souvenir export only exists once the card is won. */
+      button.action.share[hidden] {
+        display: none;
+      }
+
+      button.action.share {
+        color: #fff;
+        background: linear-gradient(
+          145deg,
+          var(--accent-soft),
+          var(--accent-deep)
+        );
+        border-color: transparent;
+        box-shadow:
+          0 8px 22px -6px hsl(var(--h) 60% 40% / 0.6),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        animation: rise 0.45s var(--ease-spring);
+      }
+
+      /* three buttons on a narrow phone need to give up some padding */
+      .actions:has(.share:not([hidden])) button.action {
+        padding-inline: 1rem;
+      }
+
+      button.action[disabled] {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
       /* "there's more below" affordance */
       .scroll-hint {
         flex: 0 0 auto;
@@ -1010,6 +1039,10 @@
         }
       }
 
+      .print-only {
+        display: none;
+      }
+
       /* Fallback for engines without backdrop-filter */
       @supports not (backdrop-filter: blur(1px)) {
         .glass,
@@ -1068,8 +1101,13 @@
           animation: none !important;
         }
 
+        .print-only {
+          display: block !important;
+        }
+
         .lang-switch,
         .icon-btn,
+        #t-rules-body,
         .actions,
         .scroll-hint,
         .win-banner,
@@ -1159,25 +1197,44 @@
           border-bottom: 1pt solid #000;
           border-radius: 0;
         }
-        .cell::before,
-        .cell::after {
+        .cell::before {
           display: none !important;
         }
 
-        /* photos still print — the label floats on them, shadow and all */
-        .cell.has-photo {
-          padding: 0;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-        .cell.has-photo .cell-label {
-          color: #fff !important;
-          text-shadow:
-            0 1px 2px rgba(0, 0, 0, 0.8),
-            0 2px 8px rgba(0, 0, 0, 0.6);
-          padding: 1.5mm 1mm 2mm;
-        }
+        /* A printable is always the plain fillable card — whatever you have
+           already ticked or photographed stays on screen. The souvenir with
+           the pictures in it is the Share export, not this. */
         .cell-photo {
+          display: none !important;
+        }
+
+        .cell.has-photo {
+          align-items: center;
+          justify-content: center;
+          padding: 3mm 2mm;
+        }
+
+        .cell.has-photo .cell-label {
+          width: auto;
+          padding: 0;
+          font-weight: 400;
+          color: #000 !important;
+          text-shadow: none;
+        }
+
+        /* an empty box to tick with a pen */
+        .cell::after,
+        .cell.found::after {
+          content: "" !important;
+          display: block !important;
+          position: absolute;
+          top: 2mm;
+          right: 2mm;
+          width: 4mm;
+          height: 4mm;
+          border: 0.5pt solid #777;
+          border-radius: 0.8mm;
+          opacity: 1;
           animation: none !important;
         }
 
@@ -1286,6 +1343,8 @@
                 Complete a full row or column — then you're free to head home.
                 🏡
               </p>
+              <!-- on paper there is nothing to tap — swapped in by print CSS -->
+              <p class="rules print-only" id="t-rules-print"></p>
             </section>
 
             <button class="sheet-done" id="t-btn-done">Done</button>
@@ -1315,7 +1374,10 @@
 
         <div class="actions">
           <button class="action primary" id="t-btn-new">New card</button>
-          <button class="action" id="t-btn-print">Print</button>
+          <!-- a blank card for paper: no photos, no ticks -->
+          <button class="action" id="t-btn-print">Printable</button>
+          <!-- the finished walk as one story-shaped picture -->
+          <button class="action share" id="t-btn-export" hidden>Share</button>
         </div>
 
         <button class="scroll-hint" id="scrollHint">↓</button>
@@ -1351,6 +1413,7 @@
 
     <script src="items.js"></script>
     <script src="themes.js"></script>
+    <script src="share.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
