@@ -16,6 +16,8 @@ const LANG = {
     btnPrint: "Print",
     themeHead: "Theme",
     themeHint: "What kind of walk is this?",
+    opinionLabel: "Imaginative prompts",
+    opinionHint: "Off means only real, findable things",
     btnDone: "Done",
     locale: "en-GB",
   },
@@ -34,6 +36,8 @@ const LANG = {
     btnPrint: "Печать",
     themeHead: "Тема",
     themeHint: "Какое настроение у этой прогулки?",
+    opinionLabel: "Задания на воображение",
+    opinionHint: "Выключено — только реальные находки",
     btnDone: "Готово",
     locale: "ru-RU",
   },
@@ -41,6 +45,7 @@ const LANG = {
 
 let lang = "en";
 let theme = DEFAULT_THEME;
+let opinionItems = false; // vibe-based prompts are opt-in
 let found = new Array(9).fill(false);
 let currentItems = [];
 let wasWon = false;
@@ -106,6 +111,8 @@ function applyLang() {
   document.getElementById("t-btn-done").textContent = t.btnDone;
   document.getElementById("t-theme-head").textContent = t.themeHead;
   document.getElementById("t-theme-hint").textContent = t.themeHint;
+  document.getElementById("t-opinion-label").textContent = t.opinionLabel;
+  document.getElementById("t-opinion-hint").textContent = t.opinionHint;
   document.title = t.title + " 🌿";
 
   const active = getTheme(theme);
@@ -201,7 +208,7 @@ function render() {
 }
 
 function newCard() {
-  const pool = itemsForTheme(theme, POOL);
+  const pool = itemsForTheme(theme, POOL, { opinionItems });
   currentItems = shuffle(pool)
     .slice(0, 9)
     .map((item) => item[lang]);
@@ -214,6 +221,13 @@ function newCard() {
 
 document.querySelectorAll(".lang-btn").forEach((btn) => {
   btn.addEventListener("click", () => setLang(btn.dataset.lang));
+});
+
+const opinionToggle = document.getElementById("opinionToggle");
+opinionToggle.checked = opinionItems;
+opinionToggle.addEventListener("change", () => {
+  opinionItems = opinionToggle.checked;
+  newCard();
 });
 
 document.getElementById("t-btn-new").addEventListener("click", newCard);

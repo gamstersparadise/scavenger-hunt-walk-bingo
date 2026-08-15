@@ -2,11 +2,11 @@
 const WalkBingoTagger = (() => {
   const SECTIONS = [
     { start: 0, end: 153, id: "concrete", difficulty: "easy" },
-    { start: 153, end: 189, id: "favorite", difficulty: "medium" },
-    { start: 189, end: 277, id: "playful", difficulty: "medium" },
-    { start: 277, end: 301, id: "subjective", difficulty: "medium" },
-    { start: 301, end: 333, id: "abstract", difficulty: "hard" },
-    { start: 333, end: 9999, id: "beach", difficulty: "easy" },
+    { start: 153, end: 188, id: "favorite", difficulty: "medium" },
+    { start: 188, end: 275, id: "playful", difficulty: "medium" },
+    { start: 275, end: 299, id: "subjective", difficulty: "medium" },
+    { start: 299, end: 329, id: "abstract", difficulty: "hard" },
+    { start: 329, end: 9999, id: "beach", difficulty: "easy" },
   ];
 
   const THEME_PATTERNS = {

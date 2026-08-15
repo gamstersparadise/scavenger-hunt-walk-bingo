@@ -92,13 +92,25 @@ const THEMES = [
 
 const DEFAULT_THEME = "forest";
 
+// Index ranges of the commented blocks in items.js — keep in sync when editing the pool.
 const SECTIONS = [
   { start: 0, end: 153, id: "concrete" },
-  { start: 153, end: 189, id: "favorite" },
-  { start: 189, end: 277, id: "playful" },
-  { start: 277, end: 301, id: "subjective" },
-  { start: 301, end: 333, id: "abstract" },
+  { start: 153, end: 188, id: "favorite" },
+  { start: 188, end: 275, id: "playful" },
+  { start: 275, end: 299, id: "subjective" },
+  { start: 299, end: 329, id: "abstract" },
+  { start: 329, end: Infinity, id: "beach" },
 ];
+
+/* ── Objectivity ──────────────────────────────────────────────────────────────
+   Some prompts ask for a judgement call ("a place that feels magical") rather
+   than a thing you can point at. Whole sections are opinion by construction;
+   inside the playful section it comes down to wording, so we look for the
+   vocabulary of opinion: looks/feels/seems, would, your, and vibe adjectives. */
+const OPINION_SECTIONS = new Set(["favorite", "subjective", "abstract"]);
+
+const OPINION_PATTERN =
+  /\b(your|looks?|feels?|seems?|resembles|represents|symboli\w+|would|deserves|worthy|worth|questionable|unexpected|unusual|strange|mysterious|surprises|surprising|perfectly|imperfect|oddly|definitely|clearly|excellent|character|personality|inconvenient|dramatic|unnecessary|recognizable|impression|magical|peaceful|hidden|nobody|accidentally|obvious)\b|\b(too many|almost no|better days|best life|working hard|on duty|steals the scene|stands out|blends in|losing the argument|raises more questions|by accident|some players|never notice\w*|makes you)\b/i;
 
 const PATTERNS = {
   forest:
@@ -113,17 +125,17 @@ const PATTERNS = {
   "tiny-details":
     /\b(tiny|small|button|coin|cap|earring|key|ticket|sticker|note|chalk|handprint|crack|pattern|palindrome|single|less than|millipede|slug|trail|holes|seed|ant|speck|miniature|oddly small|very tiny)\b/i,
   photography:
-    /\b(reflection|shadow|photograph|sunset|album|movie scene|worthy|dramatic|steals|view|cloud|puddle|scenic|picture|frame|silhouette)\b/i,
+    /\b(reflection|shadow|photograph|sunset|album|movie scene|worthy|dramatic|steals|view|cloud|puddle|scenic|picture|frame|silhouette|mural|street art|statue|fountain|balcony|flamingo|chalk drawing|painted|spider web|butterfly|nest|flower|church tower|graffiti|flag flying|ivy)\b/i,
   history:
     /\b(older|ancient|history|story|church|weather vane|cobblestone|rusty|vintage|wrong time|photograph|padlock|past|time|rings visible|abandoned|torn|decorative|never moves|20 years|some players|worn|decades)\b/i,
   hidden:
-    /\b(hidden|secret|tucked|crack|behind|unusual|never noticed|forgotten|mysterious|nowhere|unexpected|accident|nobody|curious|shortcut|revisit|never choose|raises more questions|explore)\b/i,
+    /\b(hidden|secret|tucked|crack|behind|unusual|never noticed|forgotten|mysterious|nowhere|unexpected|accident|nobody|curious|shortcut|revisit|never choose|raises more questions|explore|tunnel|alley|padlock|key without|slightly open|fire escape|under an eave|courtyard|dead end|anthill|hole in it|caught in)\b/i,
   "color-hunt":
     /\b(red|yellow|green|blue|pink|purple|orange|white|black|brown|gray|grey|gold|silver|bright|colorful|striped|polka|color theme)\b/i,
   "main-character":
     /\b(favorite|tourist|first date|movie|album|personality|adventure|dramatic|would bring|would choose|would never|deserves|feel|magical|character|imagine|return|smile|photographed|whimsical|playful)\b/i,
   cozy:
-    /\b(peaceful|quiet|hammock|porch|rocking|wind chime|wreath|cat sitting|book|cozy|slow down|first date|home|gnome|garden|read a|sunset|atmosphere|smoke|comfort|gentle|warm)\b/i,
+    /\b(peaceful|quiet|hammock|porch|rocking|wind chime|wreath|cat sitting|book|cozy|slow down|first date|home|gnome|garden|read a|sunset|atmosphere|smoke|comfort|gentle|warm|bench|picnic|swing|birdhouse|bird bath|blanket|candle|lantern|bakery|caf[eé]|coffee|flower pot|house plant|balcony with flowers|chimney|curtain|black cat|tiny dog|ceramic pot)\b/i,
 };
 
 const SECTION_THEMES = {
@@ -157,18 +169,33 @@ function themesForItem(en, index) {
   return themes;
 }
 
-/** Return pool entries that fit the chosen walk theme (falls back if pool is small). */
-function itemsForTheme(themeId, pool) {
-  const matched = pool.filter((item, index) =>
+/** True for prompts that ask for an opinion rather than a thing you can point at. */
+function isOpinionItem(en, index) {
+  return (
+    OPINION_SECTIONS.has(sectionForIndex(index)) || OPINION_PATTERN.test(en)
+  );
+}
+
+/**
+ * Return pool entries that fit the chosen walk theme (falls back if pool is small).
+ * With opinionItems off, the fallback stays inside the concrete set — never
+ * hand back an opinion prompt to someone who switched them off.
+ */
+function itemsForTheme(themeId, pool, { opinionItems = true } = {}) {
+  const allowed = pool
+    .map((item, index) => ({ item, index }))
+    .filter(({ item, index }) => opinionItems || !isOpinionItem(item.en, index));
+
+  const matched = allowed.filter(({ item, index }) =>
     themesForItem(item.en, index).has(themeId),
   );
 
-  return matched.length >= 9 ? matched : pool;
+  return (matched.length >= 9 ? matched : allowed).map(({ item }) => item);
 }
 
 function getTheme(themeId) {
   return THEMES.find((theme) => theme.id === themeId) ?? THEMES[0];
 }
 
-return { THEMES, DEFAULT_THEME, itemsForTheme, getTheme };
+return { THEMES, DEFAULT_THEME, itemsForTheme, isOpinionItem, getTheme };
 })();
