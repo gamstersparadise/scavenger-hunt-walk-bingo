@@ -6,7 +6,8 @@ const WalkBingoTagger = (() => {
     { start: 188, end: 275, id: "playful", difficulty: "medium" },
     { start: 275, end: 299, id: "subjective", difficulty: "medium" },
     { start: 299, end: 329, id: "abstract", difficulty: "hard" },
-    { start: 329, end: 9999, id: "beach", difficulty: "easy" },
+    { start: 329, end: 335, id: "beach", difficulty: "easy" },
+    { start: 335, end: 9999, id: "people", difficulty: "medium" },
   ];
 
   const THEME_PATTERNS = {
@@ -31,6 +32,8 @@ const WalkBingoTagger = (() => {
       /\b(red|yellow|green|blue|pink|purple|orange|white|black|brown|gray|grey|gold|silver|bright|colorful|striped|polka|color theme)\b/i,
     "main-character":
       /\b(favorite|tourist|first date|movie|album|personality|adventure|dramatic|would bring|would choose|would never|deserves|feel|magical|character|imagine|return|smile|photographed|whimsical|playful)\b/i,
+    people:
+      /\b(person|people|someone(?!'s)|somebody|stranger|friend|companion|couple|child|parent|crowd|queue|group|jogger|musician|worker|portrait|selfie|hands|laugh|conversation|dancing|walking a dog|street musician)\b/i,
     cozy:
       /\b(peaceful|quiet|hammock|porch|rocking|wind chime|wreath|cat sitting|book|cozy|slow down|first date|home|gnome|garden|read a|sunset|atmosphere|smoke|comfort|gentle|warm)\b/i,
   };
@@ -41,6 +44,7 @@ const WalkBingoTagger = (() => {
     subjective: ["main-character", "hidden", "cozy", "photography"],
     abstract: ["main-character", "photography", "tiny-details"],
     beach: ["beach"],
+    people: ["people", "city", "photography", "main-character"],
   };
 
   const SEASON_PATTERNS = {
