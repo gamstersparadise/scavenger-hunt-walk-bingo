@@ -137,7 +137,7 @@ function applyLang() {
   document.title = t.title + " 🌿";
 
   const active = getTheme(theme);
-  document.documentElement.style.setProperty("--h", active.hue ?? 142);
+  document.documentElement.style.setProperty("--h", active.hue ?? 128);
   document.getElementById("themeBadge").textContent =
     `${active.emoji} ${active.name[lang]}`;
 
@@ -369,7 +369,7 @@ async function buildShareData() {
   const iso = new Date().toISOString().slice(0, 10);
 
   return {
-    hue: active.hue ?? 142,
+    hue: active.hue ?? 128,
     brand: t.title,
     title: `${active.emoji} ${name ? t.walkOf(name) : active.name[lang]}`,
     date: new Date().toLocaleDateString(t.locale, {

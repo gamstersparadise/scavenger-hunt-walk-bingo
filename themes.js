@@ -3,21 +3,21 @@ const WalkBingoThemes = (() => {
 const THEMES = [
   {
     id: "forest",
-    hue: 142,
+    hue: 128,
     emoji: "🌲",
     name: { en: "Forest", ru: "Лес" },
     tagline: { en: "Nature observation", ru: "Наблюдение за природой" },
   },
   {
     id: "city",
-    hue: 225,
+    hue: 214,
     emoji: "🏙️",
     name: { en: "City", ru: "Город" },
     tagline: { en: "Urban exploration", ru: "Городские открытия" },
   },
   {
     id: "beach",
-    hue: 195,
+    hue: 186,
     emoji: "🏖️",
     name: { en: "Beach", ru: "Пляж" },
     tagline: { en: "Coastal discoveries", ru: "Прибрежные находки" },
@@ -31,21 +31,21 @@ const THEMES = [
   },
   {
     id: "architecture",
-    hue: 255,
+    hue: 266,
     emoji: "🏛️",
     name: { en: "Architecture", ru: "Архитектура" },
     tagline: { en: "Buildings & design", ru: "Здания и дизайн" },
   },
   {
     id: "tiny-details",
-    hue: 275,
+    hue: 288,
     emoji: "🔍",
     name: { en: "Tiny Details", ru: "Мелочи" },
     tagline: { en: "Close observation", ru: "Внимательный взгляд" },
   },
   {
     id: "photography",
-    hue: 210,
+    hue: 202,
     emoji: "📷",
     name: { en: "Photography Challenge", ru: "Фото-челлендж" },
     tagline: {
@@ -62,14 +62,14 @@ const THEMES = [
   },
   {
     id: "hidden",
-    hue: 268,
+    hue: 280,
     emoji: "🗝️",
     name: { en: "Hidden Places", ru: "Скрытые места" },
     tagline: { en: "Exploration", ru: "Исследование" },
   },
   {
     id: "color-hunt",
-    hue: 330,
+    hue: 338,
     emoji: "🎨",
     name: { en: "Color Hunt", ru: "Охота за цветом" },
     tagline: { en: "Visual scanning", ru: "Поиск по цвету" },
@@ -83,7 +83,7 @@ const THEMES = [
   },
   {
     id: "people",
-    hue: 350,
+    hue: 355,
     emoji: "🚶",
     name: { en: "People", ru: "Люди" },
     tagline: { en: "Friends & strangers", ru: "Друзья и незнакомцы" },

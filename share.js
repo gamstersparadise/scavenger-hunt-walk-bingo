@@ -106,23 +106,27 @@ const WalkBingoShare = (() => {
   function paintBackdrop(ctx, h) {
     // base wash
     const base = ctx.createLinearGradient(0, 0, W * 0.4, H);
-    base.addColorStop(0, `hsl(${h} 80% 96%)`);
-    base.addColorStop(0.55, `hsl(${h + 18} 72% 92%)`);
-    base.addColorStop(1, `hsl(${h - 30} 70% 90%)`);
+    base.addColorStop(0, "#fffaf0");
+    base.addColorStop(0.55, `hsl(${h} 62% 93%)`);
+    base.addColorStop(1, "#fdf1df");
     ctx.fillStyle = base;
     ctx.fillRect(0, 0, W, H);
 
-    // the same mesh of colour the app floats its glass on
+    // The same mesh of colour the app floats its glass on: two blobs on the
+    // theme hue, gold and peach pinned so the souvenir is warm on every theme.
     const blobs = [
-      [W * 0.12, H * 0.06, 760, `hsl(${h} 88% 76% / 0.55)`],
-      [W * 0.95, H * 0.14, 720, `hsl(${h + 55} 90% 78% / 0.5)`],
-      [W * 0.82, H * 0.66, 900, `hsl(${h - 45} 88% 78% / 0.45)`],
-      [W * 0.06, H * 0.86, 820, `hsl(${h + 20} 92% 82% / 0.5)`],
+      [W * 0.1, H * 0.06, 780, h, 82, 80, 0.5],
+      [W * 0.95, H * 0.14, 740, 38, 96, 80, 0.55],
+      [W * 0.82, H * 0.66, 900, h + 30, 82, 82, 0.42],
+      [W * 0.06, H * 0.86, 840, 14, 94, 84, 0.5],
     ];
-    for (const [x, y, r, color] of blobs) {
+    for (const [x, y, r, bh, s, l, a] of blobs) {
       const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, color);
-      g.addColorStop(1, "transparent");
+      g.addColorStop(0, `hsl(${bh} ${s}% ${l}% / ${a})`);
+      // Fade to the *same* colour at zero alpha. Canvas reads "transparent"
+      // as transparent black and interpolates through it, which greys the
+      // whole wash out.
+      g.addColorStop(1, `hsl(${bh} ${s}% ${l}% / 0)`);
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
     }
@@ -134,9 +138,9 @@ const WalkBingoShare = (() => {
     // Lift the tile off the backdrop before we clip to it. An untouched
     // square keeps the app's glass look — the mesh shows through it.
     ctx.save();
-    shadow(ctx, 34, 12, "rgba(30,32,48,0.22)");
+    shadow(ctx, 34, 12, "rgba(96,58,32,0.24)");
     ctx.fillStyle =
-      tile.photo || tile.found ? "#fff" : "rgba(255,255,255,0.45)";
+      tile.photo || tile.found ? "#fffaf1" : "rgba(255,250,241,0.5)";
     rr(ctx, x, y, size, size, r);
     ctx.fill();
     ctx.restore();
@@ -174,21 +178,21 @@ const WalkBingoShare = (() => {
       noShadow(ctx);
     } else if (tile.found) {
       const g = ctx.createLinearGradient(x, y, x + size, y + size);
-      g.addColorStop(0, `hsl(${h} 70% 55%)`);
-      g.addColorStop(1, `hsl(${h} 55% 30%)`);
+      g.addColorStop(0, `hsl(${h} 88% 52%)`);
+      g.addColorStop(1, `hsl(${h} 64% 19%)`);
       ctx.fillStyle = g;
       ctx.fillRect(x, y, size, size);
 
       // specular sweep, as on the live board
       const sweep = ctx.createLinearGradient(x, y, x + size * 0.7, y + size);
-      sweep.addColorStop(0, "rgba(255,255,255,0.35)");
-      sweep.addColorStop(0.45, "rgba(255,255,255,0)");
+      sweep.addColorStop(0, "rgba(255,252,245,0.38)");
+      sweep.addColorStop(0.45, "rgba(255,252,245,0)");
       ctx.fillStyle = sweep;
       ctx.fillRect(x, y, size, size);
 
       ctx.font = font(600, 26);
       const lines = wrap(ctx, tile.label, textWidth, 3);
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = "#fffaf1";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       lines.forEach((line, i) => {
@@ -206,7 +210,7 @@ const WalkBingoShare = (() => {
     } else {
       ctx.font = font(500, 26);
       const lines = wrap(ctx, tile.label, textWidth, 3);
-      ctx.fillStyle = "rgba(28,28,30,0.5)";
+      ctx.fillStyle = "rgba(90,62,44,0.55)";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       lines.forEach((line, i) => {
@@ -223,7 +227,7 @@ const WalkBingoShare = (() => {
     // hairline, to echo the glass edge
     ctx.save();
     rr(ctx, x + 1, y + 1, size - 2, size - 2, r - 1);
-    ctx.strokeStyle = "rgba(255,255,255,0.7)";
+    ctx.strokeStyle = "rgba(255,252,246,0.75)";
     ctx.lineWidth = 2;
     ctx.stroke();
     ctx.restore();
@@ -235,12 +239,12 @@ const WalkBingoShare = (() => {
     const w = tw + 62;
     const ph = 62;
     ctx.save();
-    shadow(ctx, 24, 8, "rgba(30,32,48,0.16)");
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    shadow(ctx, 24, 8, "rgba(96,58,32,0.18)");
+    ctx.fillStyle = "rgba(255,250,241,0.88)";
     rr(ctx, cx - w / 2, y, w, ph, ph / 2);
     ctx.fill();
     ctx.restore();
-    ctx.fillStyle = `hsl(${h} 55% 30%)`;
+    ctx.fillStyle = `hsl(${h} 64% 22%)`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(text, cx, y + ph / 2 + 1);
@@ -250,8 +254,8 @@ const WalkBingoShare = (() => {
   function drawStat(ctx, x, y, w, label, value, h) {
     const sh = 132;
     ctx.save();
-    shadow(ctx, 26, 10, "rgba(30,32,48,0.16)");
-    ctx.fillStyle = "rgba(255,255,255,0.78)";
+    shadow(ctx, 26, 10, "rgba(96,58,32,0.18)");
+    ctx.fillStyle = "rgba(255,250,241,0.82)";
     rr(ctx, x, y, w, sh, 30);
     ctx.fill();
     ctx.restore();
@@ -259,11 +263,11 @@ const WalkBingoShare = (() => {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.font = font(600, 24);
-    ctx.fillStyle = "rgba(60,60,67,0.6)";
+    ctx.fillStyle = "rgba(90,62,44,0.66)";
     ctx.fillText(label.toUpperCase(), x + w / 2, y + 44);
 
     ctx.font = font(700, 44);
-    ctx.fillStyle = `hsl(${h} 55% 26%)`;
+    ctx.fillStyle = `hsl(${h} 64% 20%)`;
     const lines = wrap(ctx, value, w - 40, 1);
     ctx.fillText(lines[0] || "", x + w / 2, y + 92);
   }
@@ -288,12 +292,12 @@ const WalkBingoShare = (() => {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.font = font(700, 72);
-    ctx.fillStyle = `hsl(${h} 58% 24%)`;
+    ctx.fillStyle = `hsl(${h} 64% 19%)`;
     const titleLines = wrap(ctx, data.title, W - PAD * 2, 1);
     ctx.fillText(titleLines[0], W / 2, y + 86);
 
     ctx.font = font(500, 30);
-    ctx.fillStyle = "rgba(60,60,67,0.62)";
+    ctx.fillStyle = "rgba(90,62,44,0.68)";
     ctx.fillText(data.date, W / 2, y + 150);
 
     /* ── the board ───────────────────────────────────────────── */
@@ -347,11 +351,11 @@ const WalkBingoShare = (() => {
       if (lines.length) {
         const lh = 44;
         const blockH = lines.length * lh;
-        ctx.fillStyle = `hsl(${h} 60% 50% / 0.55)`;
+        ctx.fillStyle = `hsl(${h} 82% 48% / 0.7)`;
         rr(ctx, PAD, cursor - 2, 5, blockH, 3);
         ctx.fill();
 
-        ctx.fillStyle = "rgba(28,28,30,0.8)";
+        ctx.fillStyle = "rgba(58,42,32,0.85)";
         lines.forEach((line, i) => {
           ctx.fillText(line, PAD + inset, cursor + lh * i + lh / 2 - 2);
         });
@@ -362,7 +366,7 @@ const WalkBingoShare = (() => {
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
     ctx.font = font(500, 26);
-    ctx.fillStyle = "rgba(60,60,67,0.5)";
+    ctx.fillStyle = "rgba(90,62,44,0.55)";
     ctx.fillText(data.footer, W / 2, H - 74);
 
     return canvas;
