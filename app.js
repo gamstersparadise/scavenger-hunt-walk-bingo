@@ -14,7 +14,15 @@ const LANG = {
       "Fill in your steps below, then tap Share for a picture of your walk.",
     labelName: "Name",
     labelSteps: "Steps taken",
+    labelPlace: "Place",
     notes: "Notes",
+    locateTitle: "Fill in from my location",
+    locating: "Finding you…",
+    locateCredit:
+      'From your location · place names © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
+    locateCoords: "No place name found nearby — coordinates instead.",
+    locateDenied: "Location was declined. You can type the place instead.",
+    locateFail: "Couldn't find you. You can type the place instead.",
     btnNew: "New card",
     btnPrint: "Printable",
     btnExport: "Share",
@@ -44,7 +52,15 @@ const LANG = {
       "Запиши шаги ниже и нажми «Поделиться» — получится картинка о прогулке.",
     labelName: "Имя",
     labelSteps: "Шагов пройдено",
+    labelPlace: "Место",
     notes: "Заметки",
+    locateTitle: "Определить моё местоположение",
+    locating: "Определяем…",
+    locateCredit:
+      'По вашему местоположению · названия мест © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
+    locateCoords: "Рядом нет названия — оставили координаты.",
+    locateDenied: "Доступ к геолокации отклонён. Место можно вписать вручную.",
+    locateFail: "Не удалось определить место. Можно вписать вручную.",
     btnNew: "Новая карточка",
     btnPrint: "Распечатать",
     btnExport: "Поделиться",
@@ -127,7 +143,10 @@ function applyLang() {
   document.getElementById("t-win-small").textContent = t.winSmall;
   document.getElementById("t-label-name").textContent = t.labelName;
   document.getElementById("t-label-steps").textContent = t.labelSteps;
+  document.getElementById("t-label-place").textContent = t.labelPlace;
   document.getElementById("t-notes").textContent = t.notes;
+  locateBtn.title = t.locateTitle;
+  locateBtn.setAttribute("aria-label", t.locateTitle);
   document.getElementById("t-btn-new").textContent = t.btnNew;
   document.getElementById("t-btn-print").textContent = t.btnPrint;
   document.getElementById("t-btn-export").textContent = t.btnExport;
@@ -333,6 +352,7 @@ function newCard() {
   document
     .querySelectorAll(".field-line, .note-line")
     .forEach((el) => (el.value = ""));
+  setPlaceNote(""); // the old lookup belonged to the old walk
   render();
 }
 
@@ -355,6 +375,136 @@ document.getElementById("t-btn-new").addEventListener("click", newCard);
 document.getElementById("t-btn-print").addEventListener("click", () =>
   window.print(),
 );
+
+/* ── Place: where the walk happened ────────────────────────────────
+   The only part of this app that reaches the network, and only when
+   you tap the pin. The browser hands over coordinates, those go to
+   OpenStreetMap's Nominatim, and a place name comes back. Nothing is
+   stored and nothing is sent on its own; the field stays editable,
+   because a lookup is a suggestion, not the answer. */
+
+const placeInput = document.getElementById("f-place");
+const placeNote = document.getElementById("placeNote");
+const locateBtn = document.getElementById("locateBtn");
+
+function setPlaceNote(html, tone) {
+  placeNote.innerHTML = html || "";
+  placeNote.classList.toggle("warn", tone === "warn");
+  placeNote.hidden = !html;
+}
+
+/** 51.5074, -0.1278 → "51.507° N, 0.128° W" — the fallback when the
+    lookup comes back empty or offline. */
+function coordText(lat, lon) {
+  const ns = lat >= 0 ? "N" : "S";
+  const ew = lon >= 0 ? "E" : "W";
+  return `${Math.abs(lat).toFixed(3)}° ${ns}, ${Math.abs(lon).toFixed(3)}° ${ew}`;
+}
+
+function currentPosition() {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      // A walk needs a neighbourhood, not a doorstep: the coarse fix is
+      // faster, kinder to the battery, and plenty for a subtitle.
+      enableHighAccuracy: false,
+      timeout: 12000,
+      maximumAge: 120000,
+    });
+  });
+}
+
+function firstOf(address, keys) {
+  for (const key of keys) if (address[key]) return address[key];
+  return null;
+}
+
+/** Nominatim's answer, boiled down to something you'd actually say out
+    loud: the spot, then the town it sits in. */
+function readablePlace(data) {
+  if (!data) return null;
+  const a = data.address || {};
+  const spot =
+    // A named feature — a park, a common, a wood — beats the street it
+    // happens to touch.
+    (data.category !== "highway" && data.name) ||
+    // quarter before neighbourhood: OSM's neighbourhood is sometimes an
+    // administrative label ("Manhattan Community Board 7") where the
+    // quarter is the name people actually use.
+    firstOf(a, [
+      "park",
+      "quarter",
+      "neighbourhood",
+      "suburb",
+      "city_district",
+      "road",
+      "hamlet",
+    ]);
+  const town = firstOf(a, [
+    "village",
+    "town",
+    "city",
+    "municipality",
+    "county",
+    "state",
+  ]);
+
+  const parts = [spot, town].filter(Boolean);
+  const unique = parts.filter((p, i) => parts.indexOf(p) === i);
+  if (unique.length) return unique.join(", ");
+
+  // Nothing recognisable in the breakdown — take the head of the long form.
+  return data.display_name
+    ? data.display_name.split(",").slice(0, 2).join(",").trim()
+    : null;
+}
+
+async function reverseGeocode(lat, lon) {
+  const url = new URL("https://nominatim.openstreetmap.org/reverse");
+  url.search = new URLSearchParams({
+    format: "jsonv2",
+    lat: String(lat),
+    lon: String(lon),
+    zoom: "16", // neighbourhood-sized: a district, not a house number
+    addressdetails: "1",
+    "accept-language": LANG[lang].locale,
+  });
+
+  // Their servers are donated — one request, and we give up rather than hang.
+  const stop = new AbortController();
+  const bail = setTimeout(() => stop.abort(), 9000);
+  try {
+    const res = await fetch(url, {
+      signal: stop.signal,
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return null;
+    return readablePlace(await res.json());
+  } catch {
+    return null; // offline, blocked or too slow — the coordinates still work
+  } finally {
+    clearTimeout(bail);
+  }
+}
+
+// No geolocation (or an insecure page): the field is still typeable.
+if (!navigator.geolocation || !window.isSecureContext) locateBtn.hidden = true;
+
+locateBtn.addEventListener("click", async () => {
+  const t = LANG[lang];
+  locateBtn.disabled = true;
+  setPlaceNote(t.locating);
+  try {
+    const { latitude, longitude } = (await currentPosition()).coords;
+    const name = await reverseGeocode(latitude, longitude);
+    placeInput.value = name || coordText(latitude, longitude);
+    setPlaceNote(name ? t.locateCredit : t.locateCoords);
+  } catch (err) {
+    const denied = err && err.code === 1; // PERMISSION_DENIED
+    setPlaceNote(denied ? t.locateDenied : t.locateFail, "warn");
+  } finally {
+    locateBtn.disabled = false;
+  }
+});
 
 /* ── Share: the finished walk baked into one story-sized picture ─── */
 async function buildShareData() {
@@ -393,9 +543,13 @@ async function buildShareData() {
     mark: active.emoji,
     brand: t.title,
     title: name ? t.walkOf(name) : active.name[lang],
+    // The place leads the subtitle when there is one; what kind of walk it
+    // was follows it, and the tagline only survives if nothing crowds it.
+    place: placeInput.value.trim(),
     subtitle: name
       ? `${active.name[lang]} · ${active.tagline[lang]}`
       : active.tagline[lang],
+    subtitleShort: name ? active.name[lang] : active.tagline[lang],
     dateShort: now.toLocaleDateString(t.locale, {
       weekday: "short",
       day: "numeric",

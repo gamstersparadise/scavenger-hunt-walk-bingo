@@ -307,6 +307,73 @@ const WalkBingoShare = (() => {
     ctx.restore();
   }
 
+  /* ── the subtitle: where, then what kind of walk ───────────────────
+     A map pin, drawn rather than typed — the emoji version lands in
+     whatever colour the platform feels like, which fights a card built
+     entirely out of one hue. */
+
+  function drawPin(ctx, x, y, r, color) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2.6;
+    ctx.lineJoin = "round";
+
+    // The head: an arc across the top, closed by two lines down to the tip.
+    ctx.beginPath();
+    ctx.arc(x, y, r, Math.PI * 0.86, Math.PI * 0.14);
+    ctx.lineTo(x, y + r * 2.15);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.34, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /**
+   * One line under the title: the place set in the title's ink, then the
+   * flavour text in the body ink. Either half may be absent.
+   */
+  function drawSubtitle(ctx, x, y, maxW, place, tail, h) {
+    const size = 30;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+
+    if (!place) {
+      ctx.font = font(500, size);
+      ctx.fillStyle = INK_2;
+      ctx.fillText(wrap(ctx, tail, maxW, 1)[0] || "", x, y);
+      return;
+    }
+
+    const r = 8.5;
+    const pinW = r * 2 + 14;
+    drawPin(ctx, x + r + 1, y - 3, r, accent(h));
+
+    const left = x + pinW;
+
+    ctx.font = font(700, size);
+    const text = wrap(ctx, place, maxW - pinW, 1)[0] || "";
+    ctx.fillStyle = accentDeep(h);
+    ctx.fillText(text, left, y);
+
+    // The flavour follows only if it fits whole. Half a word behind an
+    // ellipsis says nothing, and the place is the part worth keeping.
+    if (!tail) return;
+    const tailX = left + ctx.measureText(text).width;
+    const sep = " · ";
+
+    ctx.font = font(500, size);
+    if (ctx.measureText(sep + tail).width > x + maxW - tailX) return;
+
+    ctx.fillStyle = INK_3;
+    ctx.fillText(sep, tailX, y);
+    ctx.fillStyle = INK_2;
+    ctx.fillText(tail, tailX + ctx.measureText(sep).width, y);
+  }
+
   /* The display line: set as large as the measure allows, upper case and
      tracked in, so it reads as a masthead rather than a sentence. */
   const TITLE_TRACK = -0.03;
@@ -421,11 +488,17 @@ const WalkBingoShare = (() => {
     cursor += titleH + 22;
 
     /* ── subtitle ────────────────────────────────────────────────── */
-    ctx.font = font(500, 30);
-    ctx.fillStyle = INK_2;
-    ctx.textBaseline = "middle";
-    ctx.textAlign = "left";
-    ctx.fillText(wrap(ctx, data.subtitle, INNER_W, 1)[0] || "", INNER_X, cursor + 18);
+    drawSubtitle(
+      ctx,
+      INNER_X,
+      cursor + 18,
+      INNER_W,
+      data.place,
+      // With a place in front, the long form crowds the line — the short
+      // one (just the kind of walk) sits beside it instead.
+      data.place ? data.subtitleShort : data.subtitle,
+      h,
+    );
     cursor += 36 + 52;
 
     /* ── the board ───────────────────────────────────────────────── */
