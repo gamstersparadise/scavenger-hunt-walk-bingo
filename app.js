@@ -19,7 +19,8 @@ const LANG = {
     btnPrint: "Printable",
     btnExport: "Share",
     btnExportBusy: "Making…",
-    scoreline: (n) => `${n} of 9 found`,
+    statSteps: "Steps",
+    statFound: "Found",
     walkOf: (name) => `${name}'s walk`,
     themeHead: "Theme",
     themeHint: "What kind of walk is this?",
@@ -48,7 +49,8 @@ const LANG = {
     btnPrint: "Распечатать",
     btnExport: "Поделиться",
     btnExportBusy: "Готовим…",
-    scoreline: (n) => `Найдено ${n} из 9`,
+    statSteps: "Шагов",
+    statFound: "Найдено",
     walkOf: (name) => `Прогулка: ${name}`,
     themeHead: "Тема",
     themeHint: "Какое настроение у этой прогулки?",
@@ -366,30 +368,46 @@ async function buildShareData() {
     photos.map((src) => (src ? WalkBingoShare.loadImage(src) : null)),
   );
 
-  const iso = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const iso = now.toISOString().slice(0, 10);
+  const tally = found.filter(Boolean).length;
+
+  // Group the steps the way the locale does — 8412 reads better as 8,412.
+  const stepCount = Number(steps.replace(/\s/g, ""));
+  const stepsValue =
+    steps && Number.isFinite(stepCount)
+      ? stepCount.toLocaleString(t.locale)
+      : steps;
+
+  // The headline number is the walk itself when it was counted, the score
+  // otherwise; whatever is left ranges right beside it.
+  const stats = steps
+    ? [
+        { label: t.statSteps, value: stepsValue },
+        { label: t.statFound, value: `${tally}/9`, accent: true },
+      ]
+    : [{ label: t.statFound, value: `${tally}/9`, accent: true }];
 
   return {
     hue: active.hue ?? 128,
+    mark: active.emoji,
     brand: t.title,
-    title: `${active.emoji} ${name ? t.walkOf(name) : active.name[lang]}`,
-    date: new Date().toLocaleDateString(t.locale, {
-      weekday: "long",
+    title: name ? t.walkOf(name) : active.name[lang],
+    subtitle: name
+      ? `${active.name[lang]} · ${active.tagline[lang]}`
+      : active.tagline[lang],
+    dateShort: now.toLocaleDateString(t.locale, {
+      weekday: "short",
       day: "numeric",
-      month: "long",
-      year: "numeric",
+      month: "short",
     }),
     tiles: currentItems.map((label, i) => ({
       label,
       found: found[i],
       photo: images[i],
     })),
-    scoreline: t.scoreline(found.filter(Boolean).length),
-    stats: [
-      { label: t.labelName, value: name },
-      { label: t.labelSteps, value: steps },
-    ],
+    stats,
     notes: document.getElementById("f-notes").value.trim(),
-    footer: `${t.title} · ${active.tagline[lang]}`,
     filename: `walk-bingo-${iso}.png`,
   };
 }
