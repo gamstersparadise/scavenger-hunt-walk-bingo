@@ -8,7 +8,8 @@ const WalkBingoTagger = (() => {
     { start: 299, end: 329, id: "abstract", difficulty: "hard" },
     { start: 329, end: 335, id: "beach", difficulty: "easy" },
     { start: 335, end: 386, id: "people", difficulty: "medium" },
-    { start: 386, end: 9999, id: "night", difficulty: "medium" },
+    { start: 386, end: 422, id: "night", difficulty: "medium" },
+    { start: 422, end: 9999, id: "signs", difficulty: "medium" },
   ];
 
   const THEME_PATTERNS = {
@@ -37,6 +38,8 @@ const WalkBingoTagger = (() => {
       /\b(person|people|someone(?!'s)|somebody|stranger|friend|companion|couple|child|parent|crowd|queue|group|jogger|musician|worker|portrait|selfie|hands|laugh|conversation|dancing|walking a dog|street musician)\b/i,
     cozy:
       /\b(peaceful|quiet|hammock|porch|rocking|wind chime|wreath|cat sitting|book|cozy|slow down|first date|home|gnome|garden|read a|sunset|atmosphere|smoke|comfort|gentle|warm)\b/i,
+    signs:
+      /\b(sign|signpost|word|words|letter|letters|lettering|font|handwritten|written|writing|spelling|misspell\w*|typo|apostrophe|capitals|plaque|notice|poster|advert\w*|billboard|menu|price|label|sticker|graffiti|slogan|pun|initials|inscription|engraved|neon|banner|nameplate|logo|arrow|arrows|palindrome|number|license plate|opening hours|street name|shop name|grocery list|note tucked|exclamation)\b/i,
   };
 
   const SECTION_THEMES = {
@@ -47,6 +50,7 @@ const WalkBingoTagger = (() => {
     beach: ["beach"],
     people: ["people", "city", "photography", "main-character"],
     night: ["night"],
+    signs: ["signs"],
   };
 
   const SEASON_PATTERNS = {

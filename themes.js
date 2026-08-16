@@ -102,6 +102,13 @@ const THEMES = [
     name: { en: "Night Walk", ru: "Ночная прогулка" },
     tagline: { en: "After dark", ru: "Когда стемнело" },
   },
+  {
+    id: "signs",
+    hue: 157,
+    emoji: "🔤",
+    name: { en: "Signs & Words", ru: "Вывески и слова" },
+    tagline: { en: "Reading the street", ru: "Читаем улицу" },
+  },
 ];
 
 const DEFAULT_THEME = "forest";
@@ -115,7 +122,8 @@ const SECTIONS = [
   { start: 299, end: 329, id: "abstract" },
   { start: 329, end: 335, id: "beach" },
   { start: 335, end: 386, id: "people" },
-  { start: 386, end: Infinity, id: "night" },
+  { start: 386, end: 422, id: "night" },
+  { start: 422, end: Infinity, id: "signs" },
 ];
 
 /* ── Objectivity ──────────────────────────────────────────────────────────────
@@ -148,6 +156,11 @@ const PATTERNS = {
     /\b(hidden|secret|tucked|crack|behind|unusual|never noticed|forgotten|mysterious|nowhere|unexpected|accident|nobody|curious|shortcut|revisit|never choose|raises more questions|explore|tunnel|alley|padlock|key without|slightly open|fire escape|under an eave|courtyard|dead end|anthill|hole in it|caught in)\b/i,
   "color-hunt":
     /\b(red|yellow|green|blue|pink|purple|orange|white|black|brown|gray|grey|gold|silver|bright|colorful|striped|polka|color theme)\b/i,
+  /* Anything with reading in it. Kept to words that are unmistakably
+     writing — "painted" and "drawing" pull in ladybug rocks and chalk
+     doodles, which are pictures, not text. */
+  signs:
+    /\b(sign|signpost|word|words|letter|letters|lettering|font|handwritten|written|writing|spelling|misspell\w*|typo|apostrophe|capitals|plaque|notice|poster|advert\w*|billboard|menu|price|label|sticker|graffiti|slogan|pun|initials|inscription|engraved|neon|banner|nameplate|logo|arrow|arrows|palindrome|number|license plate|opening hours|street name|shop name|grocery list|note tucked|exclamation)\b/i,
   "main-character":
     /\b(favorite|tourist|first date|movie|album|personality|adventure|dramatic|would bring|would choose|would never|deserves|feel|magical|character|imagine|return|smile|photographed|whimsical|playful)\b/i,
   people:
@@ -162,6 +175,7 @@ const SECTION_THEMES = {
   subjective: ["main-character", "hidden", "cozy", "photography"],
   abstract: ["main-character", "photography", "tiny-details"],
   people: ["people", "city", "photography", "main-character"],
+  signs: ["signs"],
 };
 
 function sectionForIndex(index) {
