@@ -27,6 +27,14 @@ const LANG = {
     btnPrint: "Printable",
     btnExport: "Share",
     btnExportBusy: "Making…",
+    sendHead: "Play together",
+    sendHint: "Same nine squares",
+    sendLabel: "Send this card",
+    sendSub: "A link that opens exactly this board",
+    sendShareText: "Walk this card with me 🌿",
+    sendCopied: "Link copied — send it to whoever is walking with you.",
+    sendFailed: "Couldn't copy the link. It's in the address bar.",
+    sharedNote: "🔗 A card someone sent you",
     statSteps: "Steps",
     statFound: "Found",
     walkOf: (name) => `${name}'s walk`,
@@ -67,6 +75,14 @@ const LANG = {
     btnPrint: "Распечатать",
     btnExport: "Поделиться",
     btnExportBusy: "Готовим…",
+    sendHead: "Играть вместе",
+    sendHint: "Те же девять клеток",
+    sendLabel: "Отправить карточку",
+    sendSub: "Ссылка откроет ровно это поле",
+    sendShareText: "Пройдём эту карточку вместе 🌿",
+    sendCopied: "Ссылка скопирована — отправь тому, кто идёт с тобой.",
+    sendFailed: "Не удалось скопировать. Ссылка в адресной строке.",
+    sharedNote: "🔗 Карточка, которую тебе прислали",
     statSteps: "Шагов",
     statFound: "Найдено",
     walkOf: (name) => `Прогулка: ${name}`,
@@ -86,6 +102,9 @@ let lang = "en";
 let theme = DEFAULT_THEME;
 let opinionItems = false; // vibe-based prompts are opt-in
 let found = new Array(9).fill(false);
+// The board is nine pool indices; the labels are only how they read today,
+// in this language. Keeping both is what lets a card travel and translate.
+let currentIndices = [];
 let currentItems = [];
 // Snapshots live here as data URLs and nowhere else — no upload, no storage.
 let photos = new Array(9).fill(null);
@@ -158,6 +177,11 @@ function applyLang() {
   document.getElementById("t-theme-hint").textContent = t.themeHint;
   document.getElementById("t-opinion-label").textContent = t.opinionLabel;
   document.getElementById("t-opinion-hint").textContent = t.opinionHint;
+  document.getElementById("t-send-head").textContent = t.sendHead;
+  document.getElementById("t-send-hint").textContent = t.sendHint;
+  document.getElementById("t-send-label").textContent = t.sendLabel;
+  document.getElementById("t-send-sub").textContent = t.sendSub;
+  sharedNote.textContent = t.sharedNote;
   document.title = t.title + " 🌿";
 
   const active = getTheme(theme);
@@ -185,7 +209,10 @@ function applyLang() {
 function setLang(l) {
   lang = l;
   applyLang();
-  newCard();
+  // The same nine squares, said differently — a walk already under way
+  // shouldn't be thrown out for switching language.
+  relabelCard();
+  render();
 }
 
 function setTheme(id) {
@@ -345,18 +372,175 @@ function render() {
   document.getElementById("t-btn-new").classList.toggle("primary", !win);
 }
 
-function newCard() {
-  const pool = itemsForTheme(theme, POOL, { opinionItems });
-  currentItems = shuffle(pool)
-    .slice(0, 9)
-    .map((item) => item[lang]);
+/* ── Recently seen: the one thing this app remembers ───────────────
+   A theme can narrow the pool to a couple of dozen prompts, so plain
+   random starts repeating itself by the third walk. The last few dozen
+   pool indices live in localStorage — numbers, nothing about you or
+   where you went — and a new card prefers what they don't cover. No
+   storage to hand (private window, file://) simply means the old
+   behaviour, so nothing here is load-bearing. */
+const RECENT_KEY = "walk-bingo.recent";
+const RECENT_MAX = 48;
+
+function readRecent() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+    return Array.isArray(stored) ? stored.filter(Number.isInteger) : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberRecent(indices) {
+  try {
+    const older = readRecent().filter((index) => !indices.includes(index));
+    localStorage.setItem(
+      RECENT_KEY,
+      JSON.stringify([...indices, ...older].slice(0, RECENT_MAX)),
+    );
+  } catch {
+    /* nowhere to keep it — cards simply repeat as often as they used to */
+  }
+}
+
+/** Nine prompts, preferring the ones recent walks haven't already used. */
+function drawItems(pool) {
+  const seenAt = new Map(readRecent().map((index, at) => [index, at]));
+  const fresh = shuffle(pool.filter((item) => !seenAt.has(item.index)));
+  if (fresh.length >= 9) return fresh.slice(0, 9);
+
+  // A narrow theme runs out of unseen prompts. Top up with the ones seen
+  // longest ago: that walks round the pool instead of handing back the
+  // same nine squares every time.
+  const stale = pool
+    .filter((item) => seenAt.has(item.index))
+    .sort((a, b) => seenAt.get(b.index) - seenAt.get(a.index));
+  return [...fresh, ...stale].slice(0, 9);
+}
+
+/* ── Card codes: nine squares that fit inside a link ───────────────
+   A card is a theme, a toggle and nine pool indices — small enough to
+   travel whole in the URL hash. No server, no lookup, nothing stored
+   at either end. Indices rather than words, so whoever opens the link
+   reads the very same squares in their own language. */
+const CARD_CODE_VERSION = 1;
+
+function bytesToCode(bytes) {
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function codeToBytes(code) {
+  const padded = code.replace(/-/g, "+").replace(/_/g, "/");
+  const binary = atob(padded + "=".repeat((4 - (padded.length % 4)) % 4));
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+/** version(4) · theme(6) · imaginative(1) · nine indices(12 each) = 15 bytes. */
+function encodeCard() {
+  const bits = [];
+  const push = (value, width) => {
+    for (let bit = width - 1; bit >= 0; bit--) bits.push((value >>> bit) & 1);
+  };
+
+  push(CARD_CODE_VERSION, 4);
+  push(Math.max(0, THEMES.findIndex((entry) => entry.id === theme)), 6);
+  push(opinionItems ? 1 : 0, 1);
+  for (const index of currentIndices) push(index, 12);
+
+  const bytes = new Uint8Array(Math.ceil(bits.length / 8));
+  bits.forEach((bit, at) => {
+    if (bit) bytes[at >> 3] |= 128 >> (at & 7);
+  });
+  return bytesToCode(bytes);
+}
+
+/** Anything that doesn't read back as a whole card is no card at all. */
+function decodeCard(code) {
+  let bytes;
+  try {
+    bytes = codeToBytes(code);
+  } catch {
+    return null; // not even base64 — somebody mangled the link
+  }
+  if (bytes.length < 15) return null;
+
+  let at = 0;
+  const take = (width) => {
+    let value = 0;
+    for (let bit = 0; bit < width; bit++, at++) {
+      value = (value << 1) | ((bytes[at >> 3] >> (7 - (at & 7))) & 1);
+    }
+    return value;
+  };
+
+  if (take(4) !== CARD_CODE_VERSION) return null;
+  const entry = THEMES[take(6)];
+  const opinion = take(1) === 1;
+  const indices = Array.from({ length: 9 }, () => take(12));
+  if (!entry || indices.some((index) => !POOL[index])) return null;
+
+  return { theme: entry.id, opinionItems: opinion, indices };
+}
+
+const sharedNote = document.getElementById("sharedNote");
+const sendNote = document.getElementById("sendNote");
+
+function setSendNote(text, tone) {
+  sendNote.textContent = text || "";
+  sendNote.classList.toggle("warn", tone === "warn");
+  sendNote.hidden = !text;
+}
+
+function cardLink() {
+  const url = new URL(location.href);
+  url.hash = "c=" + encodeCard();
+  return url.toString();
+}
+
+function readLinkedCard() {
+  const match = /(?:^#|&)c=([A-Za-z0-9_-]+)/.exec(location.hash);
+  return match ? decodeCard(match[1]) : null;
+}
+
+/** Once you deal yourself a fresh board, the link in the bar describes
+    somebody else's — so it goes, along with the badge that came with it. */
+function forgetLinkedCard() {
+  sharedNote.hidden = true;
+  if (!location.hash) return;
+  try {
+    history.replaceState(null, "", location.pathname + location.search);
+  } catch {
+    /* some browsers refuse this on file:// — the badge is already gone */
+  }
+}
+
+/** Put nine pool indices on the board and start the walk over. */
+function setCard(indices) {
+  currentIndices = indices;
+  relabelCard();
   found = new Array(9).fill(false);
   photos = new Array(9).fill(null);
   document
     .querySelectorAll(".field-line, .note-line")
     .forEach((el) => (el.value = ""));
   setPlaceNote(""); // the old lookup belonged to the old walk
+  setSendNote("");
   render();
+}
+
+function relabelCard() {
+  currentItems = currentIndices.map((index) => POOL[index][lang]);
+}
+
+function newCard() {
+  const pool = itemsForTheme(theme, POOL, { opinionItems });
+  const indices = drawItems(pool).map((item) => item.index);
+  rememberRecent(indices);
+  forgetLinkedCard();
+  setCard(indices);
 }
 
 document.querySelectorAll(".lang-btn").forEach((btn) => {
@@ -371,6 +555,37 @@ opinionToggle.addEventListener("change", () => {
 });
 
 document.getElementById("t-btn-new").addEventListener("click", newCard);
+
+/* ── Send this card: the same board, on somebody else's phone ────── */
+document.getElementById("t-btn-send").addEventListener("click", async () => {
+  const t = LANG[lang];
+  const link = cardLink();
+
+  // The address bar now describes the board as well, so a reload keeps it.
+  try {
+    history.replaceState(null, "", link);
+  } catch {
+    /* file:// may refuse — the link is still on its way to the clipboard */
+  }
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: t.title, text: t.sendShareText, url: link });
+      setSendNote("");
+      return;
+    } catch (err) {
+      if (err && err.name === "AbortError") return; // thought better of it
+      /* no sheet after all — fall through and copy instead */
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(link);
+    setSendNote(t.sendCopied);
+  } catch {
+    setSendNote(t.sendFailed, "warn");
+  }
+});
 
 /* ── Printable: the plain paper card, blank and fillable ───────────
    The print stylesheet drops the photos and the ticks on its own, so
@@ -598,5 +813,20 @@ exportBtn.addEventListener("click", async () => {
   }
 });
 
-applyLang();
-newCard();
+/* ── Opening move ─────────────────────────────────────────────────
+   A link in the hash means somebody dealt this board already: take
+   their theme and their nine squares as they are. Otherwise deal. */
+const linked = readLinkedCard();
+
+if (linked) {
+  theme = linked.theme;
+  opinionItems = linked.opinionItems;
+  opinionToggle.checked = opinionItems;
+  applyLang();
+  setCard(linked.indices);
+  rememberRecent(linked.indices); // you're about to walk these too
+  sharedNote.hidden = false;
+} else {
+  applyLang();
+  newCard();
+}

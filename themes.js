@@ -95,6 +95,13 @@ const THEMES = [
     name: { en: "Cozy", ru: "Уют" },
     tagline: { en: "Comfort & atmosphere", ru: "Комфорт и атмосфера" },
   },
+  {
+    id: "night",
+    hue: 248,
+    emoji: "🌙",
+    name: { en: "Night Walk", ru: "Ночная прогулка" },
+    tagline: { en: "After dark", ru: "Когда стемнело" },
+  },
 ];
 
 const DEFAULT_THEME = "forest";
@@ -107,7 +114,8 @@ const SECTIONS = [
   { start: 275, end: 299, id: "subjective" },
   { start: 299, end: 329, id: "abstract" },
   { start: 329, end: 335, id: "beach" },
-  { start: 335, end: Infinity, id: "people" },
+  { start: 335, end: 386, id: "people" },
+  { start: 386, end: Infinity, id: "night" },
 ];
 
 /* ── Objectivity ──────────────────────────────────────────────────────────────
@@ -167,6 +175,11 @@ function themesForItem(en, index) {
   const themes = new Set();
   const section = sectionForIndex(index);
 
+  /* Night is its own world. A lit window or a moth at a lamp reads as a
+     riddle at two in the afternoon, so these belong to the night walk and
+     to nothing else — no pattern gets a say. */
+  if (section === "night") return new Set(["night"]);
+
   for (const [themeId, pattern] of Object.entries(PATTERNS)) {
     if (pattern.test(en)) themes.add(themeId);
   }
@@ -193,9 +206,15 @@ function isOpinionItem(en, index) {
  * hand back an opinion prompt to someone who switched them off.
  */
 function itemsForTheme(themeId, pool, { opinionItems = true } = {}) {
+  const wantsNight = themeId === "night";
   const allowed = pool
     .map((item, index) => ({ item, index }))
-    .filter(({ item, index }) => opinionItems || !isOpinionItem(item.en, index));
+    .filter(
+      ({ item, index }) =>
+        // the night pool and the daylight pool never mix, in either direction
+        wantsNight === (sectionForIndex(index) === "night") &&
+        (opinionItems || !isOpinionItem(item.en, index)),
+    );
 
   const matched = allowed.filter(({ item, index }) =>
     themesForItem(item.en, index).has(themeId),

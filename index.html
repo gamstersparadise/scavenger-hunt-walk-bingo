@@ -958,6 +958,68 @@
         transform: translateX(18px);
       }
 
+      /* Reads as a row of settings, acts as a button. */
+      .send-row {
+        font: inherit;
+        text-align: left;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 0.85rem;
+        padding: 0.7rem 0.85rem;
+        border-radius: var(--r-sm);
+        background: rgba(255, 250, 241, 0.6);
+        border: 0.5px solid var(--hairline);
+        cursor: pointer;
+        transition:
+          transform 0.3s var(--ease-spring),
+          background 0.25s var(--ease-out);
+      }
+
+      .send-row:hover {
+        background: rgba(255, 250, 241, 0.85);
+      }
+      .send-row:active {
+        transform: scale(0.98);
+      }
+
+      .send-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+
+      .send-text strong {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      .send-text small {
+        font-size: 0.72rem;
+        color: var(--ink-3);
+      }
+
+      .send-mark {
+        font-size: 1.05rem;
+        flex: 0 0 auto;
+      }
+
+      #sendNote {
+        margin: 0.55rem 0 0 0.2rem;
+      }
+
+      /* Sits under the tagline when the board came in through a link. */
+      .shared-note {
+        flex: 0 0 auto;
+        text-align: center;
+        font-size: 0.72rem;
+        color: var(--ink-3);
+        margin-top: 0.2rem;
+      }
+
       .rules {
         margin-top: 0.4rem;
         font-size: 0.9rem;
@@ -1205,7 +1267,10 @@
         .grabber,
         .chip .caret,
         /* the chosen theme already prints as the chip + tagline */
-        #sec-theme {
+        #sec-theme,
+        /* paper can't be sent anywhere */
+        #sec-send,
+        .shared-note {
           display: none !important;
         }
 
@@ -1453,6 +1518,24 @@
               </label>
             </section>
 
+            <!-- One card, two phones: the board travels in the link. -->
+            <section class="sheet-section" id="sec-send">
+              <div class="sheet-head">
+                <strong class="eyebrow" id="t-send-head">Play together</strong>
+                <small id="t-send-hint">Same nine squares</small>
+              </div>
+              <button class="send-row" id="t-btn-send" type="button">
+                <span class="send-text">
+                  <strong id="t-send-label">Send this card</strong>
+                  <small id="t-send-sub"
+                    >A link that opens exactly this board</small
+                  >
+                </span>
+                <span class="send-mark" aria-hidden="true">🔗</span>
+              </button>
+              <small class="field-note" id="sendNote" hidden></small>
+            </section>
+
             <section class="sheet-section" id="sec-rules">
               <strong class="eyebrow" id="t-rules-head">How to play</strong>
               <p class="rules" id="t-rules-body">
@@ -1469,6 +1552,8 @@
         </dialog>
 
         <div class="theme-tagline" id="themeTagline"></div>
+        <!-- only ever shown when the board arrived through someone's link -->
+        <div class="shared-note" id="sharedNote" hidden></div>
 
         <!-- photos never leave the device: read locally, kept in memory only -->
         <input

@@ -7,7 +7,8 @@ const WalkBingoTagger = (() => {
     { start: 275, end: 299, id: "subjective", difficulty: "medium" },
     { start: 299, end: 329, id: "abstract", difficulty: "hard" },
     { start: 329, end: 335, id: "beach", difficulty: "easy" },
-    { start: 335, end: 9999, id: "people", difficulty: "medium" },
+    { start: 335, end: 386, id: "people", difficulty: "medium" },
+    { start: 386, end: 9999, id: "night", difficulty: "medium" },
   ];
 
   const THEME_PATTERNS = {
@@ -45,6 +46,7 @@ const WalkBingoTagger = (() => {
     abstract: ["main-character", "photography", "tiny-details"],
     beach: ["beach"],
     people: ["people", "city", "photography", "main-character"],
+    night: ["night"],
   };
 
   const SEASON_PATTERNS = {
