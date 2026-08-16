@@ -30,6 +30,8 @@ const LANG = {
     statSteps: "Steps",
     statFound: "Found",
     walkOf: (name) => `${name}'s walk`,
+    // "Policeman's Walk" is already a walk — don't say it twice.
+    walkAt: (place) => (/\bwalk$/i.test(place) ? place : `${place} walk`),
     themeHead: "Theme",
     themeHint: "What kind of walk is this?",
     opinionLabel: "Imaginative prompts",
@@ -68,6 +70,7 @@ const LANG = {
     statSteps: "Шагов",
     statFound: "Найдено",
     walkOf: (name) => `Прогулка: ${name}`,
+    walkAt: (place) => `Прогулка: ${place}`,
     themeHead: "Тема",
     themeHint: "Какое настроение у этой прогулки?",
     opinionLabel: "Задания на воображение",
@@ -401,6 +404,13 @@ function coordText(lat, lon) {
   return `${Math.abs(lat).toFixed(3)}° ${ns}, ${Math.abs(lon).toFixed(3)}° ${ew}`;
 }
 
+/** "51.507° N, 0.128° W" — true of our own fallback, and of anything else
+    made only of numbers and compass points. Such a place names nothing, so
+    it never becomes a title. */
+function looksLikeCoords(text) {
+  return Boolean(text) && !/[^\d.,°'"+\-\sNSEWnsew]/.test(text);
+}
+
 function currentPosition() {
   return new Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -538,18 +548,27 @@ async function buildShareData() {
       ]
     : [{ label: t.statFound, value: `${tally}/9`, accent: true }];
 
+  /* Whose walk it was, in order of how much it says: the place, then the
+     name, then the theme. A lookup answers "Knightsbridge, City of
+     Westminster" — the head of that is the title, the rest keeps the pin
+     company underneath, so neither line repeats the other. */
+  const place = placeInput.value.trim();
+  const named = place && !looksLikeCoords(place); // coordinates make a poor title
+  const head = named ? place.split(",")[0].trim() : "";
+  const rest = named ? place.slice(head.length + 1).trim() : place;
+
+  // The name only moves down to the subtitle when the place takes its slot.
+  const displaced = head && name ? name : null;
+  const flavour = [displaced, place || name ? active.name[lang] : null];
+
   return {
     hue: active.hue ?? 128,
     mark: active.emoji,
     brand: t.title,
-    title: name ? t.walkOf(name) : active.name[lang],
-    // The place leads the subtitle when there is one; what kind of walk it
-    // was follows it, and the tagline only survives if nothing crowds it.
-    place: placeInput.value.trim(),
-    subtitle: name
-      ? `${active.name[lang]} · ${active.tagline[lang]}`
-      : active.tagline[lang],
-    subtitleShort: name ? active.name[lang] : active.tagline[lang],
+    title: head ? t.walkAt(head) : name ? t.walkOf(name) : active.name[lang],
+    place: rest,
+    subtitle: [...flavour, active.tagline[lang]].filter(Boolean).join(" · "),
+    subtitleShort: flavour.filter(Boolean).join(" · "),
     dateShort: now.toLocaleDateString(t.locale, {
       weekday: "short",
       day: "numeric",
